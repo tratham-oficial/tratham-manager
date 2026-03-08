@@ -1,4 +1,4 @@
-function classifyIntent(prompt) {
+freturn res.status(200).json(response);unction classifyIntent(prompt) {
   const text = String(prompt || '').toLowerCase();
 
   if (
