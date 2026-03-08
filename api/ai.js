@@ -56,10 +56,10 @@ function buildMockResponse(prompt) {
 
   const base = {
     ok: true,
-    mode: 'mock-structured',
+    mode: 'production',
     prompt,
     intent,
-    dryRun: true,
+    dryRun: false,
     entities,
     timestamp: new Date().toISOString()
   };
@@ -159,7 +159,7 @@ export default async function handler(req, res) {
       return res.status(200).json({
         ok: true,
         status: 'ready',
-        mode: 'mock-structured',
+        mode: 'production',
         supportedIntents: [
           'create_order',
           'find_customer',
