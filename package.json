@@ -10,6 +10,7 @@
     "dev": "vercel dev",
     "build": "vercel build"
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "vercel": "^50.29.0"
+  }
 }
