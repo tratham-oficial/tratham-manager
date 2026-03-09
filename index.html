@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tratham Manager</title>
+  <style>
+    :root {
+      --bg: #0b0b0c;
+      --panel: #151518;
+      --panel-2: #1b1b20;
+      --border: #2a2a31;
+      --text: #f5f5f7;
+      --muted: #a1a1aa;
+      --accent: #ffffff;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #0b0b0c 0%, #111216 100%);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .topbar {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: -.03em;
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn, button {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: .2s ease;
+      font-weight: 600;
+    }
+
+    .btn:hover, button:hover {
+      transform: translateY(-1px);
+      border-color: #3a3a46;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0b0b0c;
+      border-color: var(--accent);
+    }
+
+    .btn-danger {
+      background: rgba(239,68,68,.08);
+      color: #fecaca;
+      border-color: rgba(239,68,68,.35);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .tab-btn.active {
+      background: var(--text);
+      color: #0b0b0c;
+      border-color: var(--text);
+    }
+
+    .panel {
+      background: rgba(21,21,24,.9);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .card {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .card .label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .card .value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -.04em;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 16px;
+    }
+
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .panel-title h2, .panel-title h3 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: -.02em;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      background: #0f1013;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      outline: none;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: #4b5563;
+    }
+
+    .search {
+      max-width: 380px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+      background: var(--panel-2);
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      font-size: 14px;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      background: rgba(255,255,255,.02);
+    }
+
+    tr:hover td {
+      background: rgba(255,255,255,.015);
+    }
+
+    .empty {
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      text-align: center;
+      color: var(--muted);
+      background: rgba(255,255,255,.015);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+    }
+
+    .status.success {
+      color: #86efac;
+      border-color: rgba(34,197,94,.25);
+      background: rgba(34,197,94,.08);
+    }
+
+    .status.warning {
+      color: #fde68a;
+      border-color: rgba(245,158,11,.25);
+      background: rgba(245,158,11,.08);
+    }
+
+    .status.danger {
+      color: #fecaca;
+      border-color: rgba(239,68,68,.25);
+      background: rgba(239,68,68,.08);
+    }
+
+    .thumb {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      background: #0f1013;
+      display: inline-block;
+    }
+
+    .product-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .kpis-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .kpi-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .kpi-line:last-child {
+      border-bottom: 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 12px;
+    }
+
+    .form-grid-1 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .helper {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .response-box {
+      white-space: pre-wrap;
+      background: #0f1013;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      color: #e5e7eb;
+      min-height: 120px;
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .loading {
+      opacity: .7;
+      pointer-events: none;
+    }
+
+    @media (max-width: 980px) {
+      .cards {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .app {
+        padding: 16px;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <h1>Tratham Manager</h1>
+        <p>Painel operacional Shopify com base pronta para evoluir para operador por IA.</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="refreshAllBtn">Atualizar tudo</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="customers">Clientes</button>
+      <button class="tab-btn" data-tab="products">Produtos</button>
+      <button class="tab-btn" data-tab="orders">Pedidos</button>
+      <button class="tab-btn" data-tab="assistant">Assistente IA</button>
+    </div>
+
+    <section class="section active" id="dashboardSection">
+      <div class="cards">
+        <div class="card">
+          <div class="label">Pedidos</div>
+          <div class="value" id="statOrders">0</div>
+        </div>
+        <div class="card">
+          <div class="label">Produtos</div>
+          <div class="value" id="statProducts">0</div>
+        </div>
+        <div class="card">
+          <div class="label">Clientes</div>
+          <div class="value" id="statCustomers">0</div>
+        </div>
+        <div class="card">
+          <div class="label">Receita</div>
+          <div class="value" id="statRevenue">R$ 0,00</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-title">
+            <h2>Últimos pedidos</h2>
+            <span class="muted">Renderização segura mesmo com customer nulo.</span>
+          </div>
+          <div id="dashboardOrdersContainer"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            <h2>Resumo rápido</h2>
+            <span class="muted">KPIs calculados com fallback.</span>
+          </div>
+          <div class="kpis-list" id="dashboardSummary"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="customersSection">
+      <div class="panel">
+        <div class="panel-title">
+          <h2>Clientes</h2>
+          <span class="muted">Busca segura + fallback total.</span>
+        </div>
+
+        <div class="toolbar">
+          <input
+            id="customerSearch"
+            class="search"
+            type="text"
+            placeholder="Buscar por nome, email, cidade ou tag..."
+          />
+          <button class="btn" id="refreshCustomersBtn">Atualizar clientes</button>
+        </div>
+
+        <div id="customersContainer"></div>
+      </div>
+    </section>
+
+    <section class="section" id="productsSection">
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-title">
+            <h2>Produtos</h2>
+            <span class="muted">Listagem robusta com fallback de imagem e estoque.</span>
+          </div>
+
+          <div class="toolbar">
+            <button class="btn" id="refreshProductsBtn">Atualizar produtos</button>
+          </div>
+
+          <div id="productsContainer"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            <h2>Criar produto</h2>
+            <span class="muted">Mantido simples para o fluxo atual.</span>
+          </div>
+
+          <form id="createProductForm" class="stack">
+            <div class="form-grid">
+              <div>
+                <label for="productTitle">Título</label>
+                <input id="productTitle" name="title" type="text" required />
+              </div>
+              <div>
+                <label for="productPrice">Preço</label>
+                <input id="productPrice" name="price" type="number" step="0.01" min="0" required />
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div>
+                <label for="productVendor">Vendor</label>
+                <input id="productVendor" name="vendor" type="text" placeholder="Tratham" />
+              </div>
+              <div>
+                <label for="productType">Tipo</label>
+                <input id="productType" name="product_type" type="text" placeholder="Camiseta, Tricot, etc." />
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div>
+                <label for="productSku">SKU</label>
+                <input id="productSku" name="sku" type="text" />
+              </div>
+              <div>
+                <label for="productInventory">Estoque inicial</label>
+                <input id="productInventory" name="inventory_quantity" type="number" min="0" value="0" />
+              </div>
+            </div>
+
+            <div class="form-grid-1">
+              <div>
+                <label for="productDescription">Descrição</label>
+                <textarea id="productDescription" name="body_html" rows="5" placeholder="Descrição curta do produto"></textarea>
+              </div>
+            </div>
+
+            <div>
+              <button class="btn btn-primary" type="submit">Criar produto</button>
+              <div class="helper">A criação é feita pela rota <code>/api/products</code>.</div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ordersSection">
+      <div class="panel">
+        <div class="panel-title">
+          <h2>Pedidos</h2>
+          <span class="muted">Não quebra se customer vier nulo.</span>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn" id="refreshOrdersBtn">Atualizar pedidos</button>
+        </div>
+
+        <div id="ordersContainer"></div>
+      </div>
+    </section>
+
+    <section class="section" id="assistantSection">
+      <div class="panel">
+        <div class="panel-title">
+          <h2>Assistente IA</h2>
+          <span class="muted">Base pronta para evoluir para operador da Shopify.</span>
+        </div>
+
+        <form id="assistantForm" class="stack">
+          <div>
+            <label for="assistantPrompt">Comando</label>
+            <textarea
+              id="assistantPrompt"
+              rows="6"
+              placeholder="Ex: encontre o cliente Arthur e prepare um pedido com 1 camiseta suedine preta tamanho M"
+              required
+            ></textarea>
+          </div>
+
+          <div>
+            <button class="btn btn-primary" type="submit">Enviar para IA</button>
+          </div>
+        </form>
+
+        <div class="stack" style="margin-top:16px;">
+          <div>
+            <div class="muted" style="margin-bottom:8px;">Resposta</div>
+            <div id="assistantResponse" class="response-box">Aguardando comando.</div>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          Esta rota já responde em formato estruturado para depois evoluir para intents como buscar cliente, buscar produto e criar pedido.
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const state = {
+      customers: [],
+      filteredCustomers: [],
+      products: [],
+      orders: [],
+      stats: {
+        orders: 0,
+        products: 0,
+        customers: 0,
+        revenue: 0
+      }
+    };
+
+    const els = {
+      statOrders: document.getElementById('statOrders'),
+      statProducts: document.getElementById('statProducts'),
+      statCustomers: document.getElementById('statCustomers'),
+      statRevenue: document.getElementById('statRevenue'),
+
+      customersContainer: document.getElementById('customersContainer'),
+      productsContainer: document.getElementById('productsContainer'),
+      ordersContainer: document.getElementById('ordersContainer'),
+      dashboardOrdersContainer: document.getElementById('dashboardOrdersContainer'),
+      dashboardSummary: document.getElementById('dashboardSummary'),
+
+      customerSearch: document.getElementById('customerSearch'),
+
+      refreshAllBtn: document.getElementById('refreshAllBtn'),
+      refreshCustomersBtn: document.getElementById('refreshCustomersBtn'),
+      refreshProductsBtn: document.getElementById('refreshProductsBtn'),
+      refreshOrdersBtn: document.getElementById('refreshOrdersBtn'),
+
+      createProductForm: document.getElementById('createProductForm'),
+
+      assistantForm: document.getElementById('assistantForm'),
+      assistantPrompt: document.getElementById('assistantPrompt'),
+      assistantResponse: document.getElementById('assistantResponse')
+    };
+
+    function safeText(value, fallback = '—') {
+      if (value === null || value === undefined) return fallback;
+      const str = String(value).trim();
+      return str ? str : fallback;
+    }
+
+    function safeNumber(value, fallback = 0) {
+      const n = Number(value);
+      return Number.isFinite(n) ? n : fallback;
+    }
+
+    function formatMoneyBRL(value) {
+      const num = safeNumber(value, 0);
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(num);
+    }
+
+    function formatDateBR(value) {
+      if (!value) return '—';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '—';
+      return new Intl.DateTimeFormat('pt-BR', {
+        dateStyle: 'short',
+        timeStyle: 'short'
+      }).format(date);
+    }
+
+    function getCustomerName(c) {
+      const firstName = safeText(c?.first_name, '').trim();
+      const lastName = safeText(c?.last_name, '').trim();
+      const fullName = `${firstName} ${lastName}`.trim();
+
+      if (fullName) return fullName;
+
+      const defaultAddressName = safeText(c?.default_address?.name, '').trim();
+      if (defaultAddressName) return defaultAddressName;
+
+      return 'Cliente sem nome';
+    }
+
+    function getCustomerEmail(c) {
+      return safeText(c?.email, '—');
+    }
+
+    function getCustomerCity(c) {
+      return safeText(c?.default_address?.city || c?.city, '—');
+    }
+
+    function getCustomerTotalSpent(c) {
+      return formatMoneyBRL(c?.total_spent);
+    }
+
+    function getProductImage(p) {
+      return (
+        p?.image?.src ||
+        p?.image ||
+        p?.images?.[0]?.src ||
+        'data:image/svg+xml;charset=UTF-8,' +
+          encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+              <rect width="100%" height="100%" fill="#111216"/>
+              <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#777" font-family="Arial" font-size="12">
+                Sem imagem
+              </text>
+            </svg>
+          `)
+      );
+    }
+
+    function getProductStock(p) {
+      if (typeof p?.inventory_quantity === 'number') return p.inventory_quantity;
+
+      if (Array.isArray(p?.variants)) {
+        return p.variants.reduce((sum, v) => {
+          const qty = typeof v?.inventory_quantity === 'number' ? v.inventory_quantity : 0;
+          return sum + qty;
+        }, 0);
+      }
+
+      return 0;
+    }
+
+    function getOrderCustomerName(order) {
+      const customer = order?.customer;
+      if (!customer) return 'Cliente não identificado';
+      return getCustomerName(customer);
+    }
+
+    function getOrderItemCount(order) {
+      return Array.isArray(order?.line_items) ? order.line_items.length : 0;
+    }
+
+    async function fetchJson(url, options = {}) {
+      const res = await fetch(url, options);
+      const contentType = res.headers.get('content-type') || '';
+      const isJson = contentType.includes('application/json');
+      const data = isJson ? await res.json() : await res.text();
+
+      if (!res.ok) {
+        const message =
+          (isJson && (data?.error || data?.message)) ||
+          (typeof data === 'string' ? data : 'Erro inesperado');
+        throw new Error(message);
+      }
+
+      return data;
+    }
+
+    function setLoading(button, loading = true) {
+      if (!button) return;
+      button.disabled = loading;
+      button.classList.toggle('loading', loading);
+    }
+
+    function renderEmpty(message) {
+      return `<div class="empty">${message}</div>`;
+    }
+
+    function renderDashboardStats() {
+      els.statOrders.textContent = safeNumber(state.stats.orders, 0);
+      els.statProducts.textContent = safeNumber(state.stats.products, 0);
+      els.statCustomers.textContent = safeNumber(state.stats.customers, 0);
+      els.statRevenue.textContent = formatMoneyBRL(state.stats.revenue);
+    }
+
+    function renderDashboardOrders() {
+      const orders = Array.isArray(state.orders) ? state.orders.slice(0, 5) : [];
+
+      if (!orders.length) {
+        els.dashboardOrdersContainer.innerHTML = renderEmpty('Nenhum pedido encontrado.');
+        return;
+      }
+
+      const rows = orders.map(order => {
+        const financialStatus = safeText(order?.financial_status, '—');
+        const fulfillmentStatus = safeText(order?.fulfillment_status, '—');
+        const totalPrice = formatMoneyBRL(order?.total_price);
+
+        return `
+          <div class="kpi-line">
+            <div>
+              <strong>${safeText(order?.name, 'Pedido sem identificação')}</strong><br>
+              <span class="muted">${getOrderCustomerName(order)}</span>
+            </div>
+            <div style="text-align:right;">
+              <strong>${totalPrice}</strong><br>
+              <span class="muted">${financialStatus} · ${fulfillmentStatus}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      els.dashboardOrdersContainer.innerHTML = `<div class="kpis-list">${rows}</div>`;
+    }
+
+    function renderDashboardSummary() {
+      const avgTicket =
+        state.orders.length > 0
+          ? state.stats.revenue / state.orders.length
+          : 0;
+
+      const totalInventory = state.products.reduce((sum, p) => sum + getProductStock(p), 0);
+
+      els.dashboardSummary.innerHTML = `
+        <div class="kpi-line">
+          <span class="muted">Ticket médio</span>
+          <strong>${formatMoneyBRL(avgTicket)}</strong>
+        </div>
+        <div class="kpi-line">
+          <span class="muted">Produtos carregados</span>
+          <strong>${safeNumber(state.products.length, 0)}</strong>
+        </div>
+        <div class="kpi-line">
+          <span class="muted">Clientes carregados</span>
+          <strong>${safeNumber(state.customers.length, 0)}</strong>
+        </div>
+        <div class="kpi-line">
+          <span class="muted">Estoque somado</span>
+          <strong>${safeNumber(totalInventory, 0)}</strong>
+        </div>
+      `;
+    }
+
+    async function loadDashboard() {
+      try {
+        const [ordersCountRes, productsCountRes, customersCountRes] = await Promise.allSettled([
+          fetchJson('/api/orders'),
+          fetchJson('/api/products'),
+          fetchJson('/api/customers')
+        ]);
+
+        const ordersData = ordersCountRes.status === 'fulfilled' ? ordersCountRes.value : { orders: [] };
+        const productsData = productsCountRes.status === 'fulfilled' ? productsCountRes.value : { products: [] };
+        const customersData = customersCountRes.status === 'fulfilled' ? customersCountRes.value : { customers: [] };
+
+        state.orders = Array.isArray(ordersData?.orders) ? ordersData.orders : [];
+        state.products = Array.isArray(productsData?.products) ? productsData.products : [];
+        state.customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
+        state.filteredCustomers = [...state.customers];
+
+        state.stats.orders = state.orders.length;
+        state.stats.products = state.products.length;
+        state.stats.customers = state.customers.length;
+        state.stats.revenue = state.orders.reduce((sum, order) => {
+          return sum + safeNumber(order?.total_price, 0);
+        }, 0);
+
+        renderDashboardStats();
+        renderDashboardOrders();
+        renderDashboardSummary();
+        renderCustomers(state.filteredCustomers);
+        renderProducts(state.products);
+        renderOrders(state.orders);
+      } catch (error) {
+        console.error('Erro ao carregar dashboard:', error);
+        renderDashboardStats();
+        els.dashboardOrdersContainer.innerHTML = renderEmpty('Erro ao carregar pedidos do dashboard.');
+        els.dashboardSummary.innerHTML = `
+          <div class="kpi-line"><span class="muted">Status</span><strong>Erro ao carregar</strong></div>
+        `;
+      }
+    }
+
+    async function loadCustomers() {
+      try {
+        const data = await fetchJson('/api/customers');
+        state.customers = Array.isArray(data?.customers) ? data.customers : [];
+        state.filteredCustomers = [...state.customers];
+        state.stats.customers = state.customers.length;
+        renderDashboardStats();
+        renderDashboardSummary();
+        renderCustomers(state.filteredCustomers);
+      } catch (error) {
+        console.error('Erro ao carregar clientes:', error);
+        els.customersContainer.innerHTML = renderEmpty('Erro ao carregar clientes.');
+      }
+    }
+
+    async function loadProducts() {
+      try {
+        const data = await fetchJson('/api/products');
+        state.products = Array.isArray(data?.products) ? data.products : [];
+        state.stats.products = state.products.length;
+        renderDashboardStats();
+        renderDashboardSummary();
+        renderProducts(state.products);
+      } catch (error) {
+        console.error('Erro ao carregar produtos:', error);
+        els.productsContainer.innerHTML = renderEmpty('Erro ao carregar produtos.');
+      }
+    }
+
+    async function loadOrders() {
+      try {
+        const data = await fetchJson('/api/orders');
+        state.orders = Array.isArray(data?.orders) ? data.orders : [];
+        state.stats.orders = state.orders.length;
+        state.stats.revenue = state.orders.reduce((sum, order) => sum + safeNumber(order?.total_price, 0), 0);
+        renderDashboardStats();
+        renderDashboardOrders();
+        renderDashboardSummary();
+        renderOrders(state.orders);
+      } catch (error) {
+        console.error('Erro ao carregar pedidos:', error);
+        els.ordersContainer.innerHTML = renderEmpty('Erro ao carregar pedidos.');
+      }
+    }
+
+    /*
+      ============================================
+      PRIORIDADE 1 — BLOCO EXATO DE CLIENTES
+      ============================================
+    */
+
+    function renderCustomers(customers = []) {
+      const safeCustomers = Array.isArray(customers) ? customers : [];
+
+      if (!safeCustomers.length) {
+        els.customersContainer.innerHTML = renderEmpty('Nenhum cliente encontrado.');
+        return;
+      }
+
+      const rows = safeCustomers.map(c => {
+        const name = getCustomerName(c);
+        const email = getCustomerEmail(c);
+        const city = getCustomerCity(c);
+        const totalSpent = getCustomerTotalSpent(c);
+        const createdAt = formatDateBR(c?.created_at);
+
+        return `
+          <tr>
+            <td>
+              <strong>${name}</strong>
+            </td>
+            <td>${email}</td>
+            <td>${city}</td>
+            <td>${totalSpent}</td>
+            <td>${createdAt}</td>
+          </tr>
+        `;
+      }).join('');
+
+      els.customersContainer.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Cidade</th>
+                <th>Total gasto</th>
+                <th>Criado em</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function filterCustomers(query = '') {
+      const q = String(query || '').trim().toLowerCase();
+
+      if (!q) {
+        state.filteredCustomers = [...state.customers];
+        renderCustomers(state.filteredCustomers);
+        return;
+      }
+
+      state.filteredCustomers = state.customers.filter(c => {
+        const name = getCustomerName(c).toLowerCase();
+        const email = getCustomerEmail(c).toLowerCase();
+        const city = getCustomerCity(c).toLowerCase();
+        const tags = safeText(c?.tags, '').toLowerCase();
+        const totalSpent = String(c?.total_spent ?? '').toLowerCase();
+
+        return (
+          name.includes(q) ||
+          email.includes(q) ||
+          city.includes(q) ||
+          tags.includes(q) ||
+          totalSpent.includes(q)
+        );
+      });
+
+      renderCustomers(state.filteredCustomers);
+    }
+
+    /*
+      ============================================
+      PRODUTOS
+      ============================================
+    */
+
+    function renderProducts(products = []) {
+      const safeProducts = Array.isArray(products) ? products : [];
+
+      if (!safeProducts.length) {
+        els.productsContainer.innerHTML = renderEmpty('Nenhum produto encontrado.');
+        return;
+      }
+
+      const rows = safeProducts.map(product => {
+        const title = safeText(product?.title, 'Produto sem título');
+        const price = Array.isArray(product?.variants) && product.variants[0]
+          ? formatMoneyBRL(product.variants[0]?.price)
+          : formatMoneyBRL(product?.price);
+
+        const stock = getProductStock(product);
+        const image = getProductImage(product);
+
+        return `
+          <tr>
+            <td>
+              <div class="product-row">
+                <img class="thumb" src="${image}" alt="${title}" />
+                <div>
+                  <strong>${title}</strong><br>
+                  <span class="muted">ID: ${safeText(product?.id, '—')}</span>
+                </div>
+              </div>
+            </td>
+            <td>${safeText(product?.vendor, '—')}</td>
+            <td>${price}</td>
+            <td>${stock}</td>
+            <td>${safeText(product?.status, 'active')}</td>
+            <td>
+              <button class="btn btn-danger" onclick="deleteProduct('${product?.id}')">Excluir</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      els.productsContainer.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Vendor</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    async function createProduct(event) {
+      event.preventDefault();
+
+      const form = els.createProductForm;
+      const formData = new FormData(form);
+
+      const payload = {
+        title: formData.get('title'),
+        price: formData.get('price'),
+        vendor: formData.get('vendor'),
+        product_type: formData.get('product_type'),
+        sku: formData.get('sku'),
+        inventory_quantity: formData.get('inventory_quantity'),
+        body_html: formData.get('body_html')
+      };
+
+      try {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        setLoading(submitBtn, true);
+
+        await fetchJson('/api/products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        form.reset();
+        await loadProducts();
+        await loadDashboard();
+        alert('Produto criado com sucesso.');
+      } catch (error) {
+        console.error('Erro ao criar produto:', error);
+        alert(`Erro ao criar produto: ${error.message}`);
+      } finally {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        setLoading(submitBtn, false);
+      }
+    }
+
+    async function deleteProduct(id) {
+      if (!id) {
+        alert('ID do produto inválido.');
+        return;
+      }
+
+      const confirmed = window.confirm('Tem certeza que deseja excluir este produto?');
+      if (!confirmed) return;
+
+      try {
+        await fetchJson(`/api/products?id=${encodeURIComponent(id)}`, {
+          method: 'DELETE'
+        });
+
+        await loadProducts();
+        await loadDashboard();
+        alert('Produto excluído com sucesso.');
+      } catch (error) {
+        console.error('Erro ao excluir produto:', error);
+        alert(`Erro ao excluir produto: ${error.message}`);
+      }
+    }
+
+    window.deleteProduct = deleteProduct;
+
+    /*
+      ============================================
+      PEDIDOS
+      ============================================
+    */
+
+    function financialBadge(status) {
+      const normalized = String(status || '').toLowerCase();
+
+      if (['paid', 'authorized'].includes(normalized)) {
+        return `<span class="status success">${safeText(status, '—')}</span>`;
+      }
+
+      if (['pending', 'partially_paid'].includes(normalized)) {
+        return `<span class="status warning">${safeText(status, '—')}</span>`;
+      }
+
+      return `<span class="status">${safeText(status, '—')}</span>`;
+    }
+
+    function fulfillmentBadge(status) {
+      const normalized = String(status || '').toLowerCase();
+
+      if (['fulfilled'].includes(normalized)) {
+        return `<span class="status success">${safeText(status, '—')}</span>`;
+      }
+
+      if (['partial'].includes(normalized)) {
+        return `<span class="status warning">${safeText(status, '—')}</span>`;
+      }
+
+      if (['unfulfilled', 'restocked'].includes(normalized)) {
+        return `<span class="status danger">${safeText(status, '—')}</span>`;
+      }
+
+      return `<span class="status">${safeText(status, '—')}</span>`;
+    }
+
+    function renderOrders(orders = []) {
+      const safeOrders = Array.isArray(orders) ? orders : [];
+
+      if (!safeOrders.length) {
+        els.ordersContainer.innerHTML = renderEmpty('Nenhum pedido encontrado.');
+        return;
+      }
+
+      const rows = safeOrders.map(order => {
+        return `
+          <tr>
+            <td>
+              <strong>${safeText(order?.name, 'Pedido sem identificação')}</strong><br>
+              <span class="muted">${safeText(order?.id, '—')}</span>
+            </td>
+            <td>${getOrderCustomerName(order)}</td>
+            <td>${getOrderItemCount(order)}</td>
+            <td>${formatMoneyBRL(order?.total_price)}</td>
+            <td>${financialBadge(order?.financial_status)}</td>
+            <td>${fulfillmentBadge(order?.fulfillment_status)}</td>
+            <td>${formatDateBR(order?.created_at)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      els.ordersContainer.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Pedido</th>
+                <th>Cliente</th>
+                <th>Itens</th>
+                <th>Total</th>
+                <th>Financeiro</th>
+                <th>Fulfillment</th>
+                <th>Criado em</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    /*
+      ============================================
+      ASSISTENTE IA
+      ============================================
+    */
+
+    async function handleAssistant(event) {
+      event.preventDefault();
+
+      const prompt = els.assistantPrompt.value.trim();
+      if (!prompt) return;
+
+      try {
+        const submitBtn = els.assistantForm.querySelector('button[type="submit"]');
+        setLoading(submitBtn, true);
+        els.assistantResponse.textContent = 'Processando comando...';
+
+        const data = await fetchJson('/api/ai', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ prompt })
+        });
+
+        els.assistantResponse.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        console.error('Erro na IA:', error);
+        els.assistantResponse.textContent = `Erro: ${error.message}`;
+      } finally {
+        const submitBtn = els.assistantForm.querySelector('button[type="submit"]');
+        setLoading(submitBtn, false);
+      }
+    }
+
+    /*
+      ============================================
+      TABS
+      ============================================
+    */
+
+    function setActiveTab(tabName) {
+      const map = {
+        dashboard: 'dashboardSection',
+        customers: 'customersSection',
+        products: 'productsSection',
+        orders: 'ordersSection',
+        assistant: 'assistantSection'
+      };
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+      });
+
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.remove('active');
+      });
+
+      const targetId = map[tabName];
+      const target = document.getElementById(targetId);
+      if (target) target.classList.add('active');
+    }
+
+    /*
+      ============================================
+      EVENTOS
+      ============================================
+    */
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
+    });
+
+    els.customerSearch.addEventListener('input', (e) => {
+      filterCustomers(e.target.value);
+    });
+
+    els.refreshAllBtn.addEventListener('click', async () => {
+      setLoading(els.refreshAllBtn, true);
+      await loadDashboard();
+      setLoading(els.refreshAllBtn, false);
+    });
+
+    els.refreshCustomersBtn.addEventListener('click', async () => {
+      setLoading(els.refreshCustomersBtn, true);
+      await loadCustomers();
+      setLoading(els.refreshCustomersBtn, false);
+    });
+
+    els.refreshProductsBtn.addEventListener('click', async () => {
+      setLoading(els.refreshProductsBtn, true);
+      await loadProducts();
+      setLoading(els.refreshProductsBtn, false);
+    });
+
+    els.refreshOrdersBtn.addEventListener('click', async () => {
+      setLoading(els.refreshOrdersBtn, true);
+      await loadOrders();
+      setLoading(els.refreshOrdersBtn, false);
+    });
+
+    els.createProductForm.addEventListener('submit', createProduct);
+    els.assistantForm.addEventListener('submit', handleAssistant);
+
+    /*
+      ============================================
+      INIT
+      ============================================
+    */
+
+    loadDashboard();
+  </script>
+</body>
+</html>

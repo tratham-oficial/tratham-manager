@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"/Users/arthursilveira/Downloads/tratham-manager-main/README.md\":*)",
+      "Bash(\"/Users/arthursilveira/Downloads/tratham-manager-main/.gitignore\":*)",
+      "Bash(\"/Users/arthursilveira/Downloads/tratham-manager-main/VERCEL_SETUP.md\":*)"
+    ]
+  }
+}
