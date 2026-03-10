@@ -622,7 +622,7 @@ Retirar na loja"
         </div>
 
         <!-- FORMULÁRIO ABAIXO -->
-        <div id="createOrderFormContainer" style="display:none;">
+        <div id="createOrderFormContainer">
           <form id="createOrderForm" class="stack">
             <!-- CLIENTE -->
             <div style="background:#1a2a3a; padding:16px; border-radius:12px; border-left:4px solid #3b82f6;">
@@ -1747,19 +1747,217 @@ Retirar na loja"
       ============================================
     */
 
+    // Variáveis globais para armazenar dados da Shopify
+    let shopifyProducts = [];
+    let shippingMethods = [];
+
+    // Busca inteligente de produtos - faz match fuzzy
+    async function searchProductSmart(query) {
+      try {
+        const response = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: `buscar produto ${query}` })
+        });
+        const result = await response.json();
+
+        // Busca por fuzzy matching nos produtos carregados
+        const queryLower = query.toLowerCase();
+        let bestMatch = null;
+        let bestScore = 0;
+
+        shopifyProducts.forEach(product => {
+          const titleLower = product.title.toLowerCase();
+          const similarity = calculateStringSimilarity(queryLower, titleLower);
+
+          if (similarity > bestScore) {
+            bestScore = similarity;
+            bestMatch = product;
+          }
+        });
+
+        return bestMatch;
+      } catch (error) {
+        console.error('Erro ao buscar produto:', error);
+        return null;
+      }
+    }
+
+    // Calcula similaridade entre strings
+    function calculateStringSimilarity(str1, str2) {
+      const longer = str1.length > str2.length ? str1 : str2;
+      const shorter = str1.length > str2.length ? str2 : str1;
+
+      if (longer.length === 0) return 1;
+
+      const editDistance = getEditDistance(longer, shorter);
+      return (longer.length - editDistance) / longer.length;
+    }
+
+    function getEditDistance(s1, s2) {
+      const costs = [];
+      for (let i = 0; i <= s1.length; i++) {
+        let lastValue = i;
+        for (let j = 0; j <= s2.length; j++) {
+          if (i === 0) {
+            costs[j] = j;
+          } else if (j > 0) {
+            let newValue = costs[j - 1];
+            if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
+              newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+            }
+            costs[j - 1] = lastValue;
+            lastValue = newValue;
+          }
+        }
+        if (i > 0) costs[s2.length] = lastValue;
+      }
+      return costs[s2.length];
+    }
+
+    // Carrega produtos e formas de entrega da Shopify
+    async function loadShopifyData() {
+      try {
+        // Carrega produtos
+        const productsRes = await fetch('/api/ai?action=products');
+        const productsData = await productsRes.json();
+        if (productsData.ok && productsData.data) {
+          shopifyProducts = productsData.data;
+        }
+
+        // Carrega formas de entrega
+        const shippingRes = await fetch('/api/ai?action=shipping');
+        const shippingData = await shippingRes.json();
+        if (shippingData.ok && shippingData.data) {
+          shippingMethods = shippingData.data;
+
+          // Preenche o select de entrega
+          const shippingSelect = document.getElementById('createOrderShipping');
+          if (shippingSelect && shippingMethods.length > 0) {
+            shippingSelect.innerHTML = '<option value="">Selecione...</option>';
+            shippingMethods.forEach(method => {
+              const option = document.createElement('option');
+              option.value = method.id;
+              option.textContent = method.label;
+              shippingSelect.appendChild(option);
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados da Shopify:', error);
+      }
+    }
+
     function addCreateOrderItem() {
       const container = document.getElementById('createOrderItems');
       const index = container.children.length;
       const item = document.createElement('div');
-      item.style.cssText = 'background:#151820; padding:12px; border-radius:8px; display:grid; grid-template-columns:2fr 1fr 1fr auto; gap:8px; align-items:end;';
+      item.style.cssText = 'background:#151820; padding:12px; border-radius:8px; display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr auto; gap:8px; align-items:end;';
       item.setAttribute('data-create-item-index', index);
+
+      // Cria options do dropdown de PRODUTOS (sincronizado com Shopify)
+      let productOptions = '<option value="">Selecione produto...</option>';
+      shopifyProducts.forEach(product => {
+        const firstVariantPrice = product.variants?.[0]?.price || 0;
+        productOptions += `
+          <option value="${product.id}"
+                  data-title="${product.title}"
+                  data-first-price="${firstVariantPrice}"
+                  data-variants='${JSON.stringify(product.variants || [])}'>
+            ${product.title}
+          </option>`;
+      });
+
+      // Cria options do dropdown de VARIANTES (inicialmente vazio)
+      let variantOptions = '<option value="">Selecione variante...</option>';
+
       item.innerHTML = `
-        <input type="text" placeholder="Produto" class="create-order-item-name" style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required>
-        <input type="number" placeholder="Qtd" class="create-order-item-qty" value="1" min="1" style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required>
-        <input type="number" placeholder="Preço" class="create-order-item-price" step="0.01" style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required>
+        <div style="display:flex; gap:6px; align-items:end;">
+          <!-- Dropdown de Produtos -->
+          <select class="create-order-item-product"
+                  style="flex:1; padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);"
+                  required
+                  onchange="updateItemVariants(this, ${index})">
+            ${productOptions}
+          </select>
+
+          <!-- Dropdown de Variantes -->
+          <select class="create-order-item-variant"
+                  style="flex:1; padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);"
+                  required
+                  onchange="updateItemPrice(this, ${index})">
+            ${variantOptions}
+          </select>
+        </div>
+
+        <input type="number" placeholder="Qtd" class="create-order-item-qty" value="1" min="1"
+               style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required>
+
+        <input type="number" placeholder="Preço" class="create-order-item-price" step="0.01"
+               style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required>
+
         <button type="button" class="btn btn-danger" style="width:40px; padding:8px; display:flex; align-items:center; justify-content:center;" onclick="removeCreateOrderItem(${index})">−</button>
       `;
       container.appendChild(item);
+    }
+
+    // Atualiza o dropdown de VARIANTES quando um PRODUTO é selecionado
+    function updateItemVariants(productSelect, index) {
+      const selectedOption = productSelect.options[productSelect.selectedIndex];
+      const variantsJson = selectedOption.getAttribute('data-variants');
+
+      const itemDiv = document.querySelector(`[data-create-item-index="${index}"]`);
+      const variantSelect = itemDiv.querySelector('.create-order-item-variant');
+      const priceInput = itemDiv.querySelector('.create-order-item-price');
+
+      if (!variantsJson || variantsJson === '[]' || variantsJson === '') {
+        // Se não há variantes, mostra mensagem
+        variantSelect.innerHTML = '<option value="">Nenhuma variante disponível</option>';
+        priceInput.value = '';
+        return;
+      }
+
+      try {
+        const variants = JSON.parse(variantsJson);
+
+        if (variants.length === 0) {
+          variantSelect.innerHTML = '<option value="">Nenhuma variante disponível</option>';
+          return;
+        }
+
+        // Preenche o dropdown de variantes
+        let variantOptions = '<option value="">Selecione variante...</option>';
+        variants.forEach(variant => {
+          variantOptions += `
+            <option value="${variant.id}"
+                    data-variant-title="${variant.title}"
+                    data-price="${variant.price}">
+              ${variant.title || variant.sku || 'Variante'} - R$ ${parseFloat(variant.price || 0).toFixed(2)}
+            </option>`;
+        });
+
+        variantSelect.innerHTML = variantOptions;
+        priceInput.value = ''; // Limpa o preço até que uma variante seja selecionada
+
+      } catch (error) {
+        console.error('Erro ao processar variantes:', error);
+        variantSelect.innerHTML = '<option value="">Erro ao carregar variantes</option>';
+      }
+    }
+
+    // Atualiza o PREÇO quando uma VARIANTE é selecionada
+    function updateItemPrice(variantSelect, index) {
+      const selectedOption = variantSelect.options[variantSelect.selectedIndex];
+      const price = selectedOption.getAttribute('data-price');
+
+      const itemDiv = document.querySelector(`[data-create-item-index="${index}"]`);
+      const priceInput = itemDiv.querySelector('.create-order-item-price');
+
+      if (price && priceInput) {
+        priceInput.value = parseFloat(price).toFixed(2);
+      } else if (priceInput) {
+        priceInput.value = '';
+      }
     }
 
     function removeCreateOrderItem(index) {
@@ -1783,20 +1981,22 @@ Retirar na loja"
       document.getElementById('createOrderNotes').value = '';
       document.getElementById('whatsappData').value = '';
       document.getElementById('createOrderItems').innerHTML = '';
-      document.getElementById('createOrderFormContainer').style.display = 'none';
     }
 
-    function processWhatsappData() {
+    async function processWhatsappData() {
       const whatsappText = document.getElementById('whatsappData').value.trim();
       if (!whatsappText) {
         alert('⚠️ Cole os dados do WhatsApp primeiro');
         return;
       }
 
+      // Mostra indicador de carregamento
+      alert('⏳ Analisando dados e buscando produtos na Shopify...');
+
       // Extrai informações do texto
       const lines = whatsappText.split('\n').map(l => l.trim()).filter(l => l);
 
-      // Simula análise inteligente - você pode melhorar isso com regex mais complexos
+      // Análise inteligente com regex
       let name = '';
       let cpf = '';
       let phone = '';
@@ -1867,6 +2067,7 @@ Retirar na loja"
 
       // Extrai produtos (linhas que não foram processadas como dados pessoais)
       const processedLines = [name, cpf, phone, street, city, state, zip, notes].filter(l => l);
+      const productLines = [];
       lines.forEach(line => {
         const lower = line.toLowerCase();
         if (!processedLines.some(p => p && line.includes(p)) &&
@@ -1876,10 +2077,35 @@ Retirar na loja"
             line.length > 3) {
           // Trata como possível produto
           if (!lower.includes('total') && !lower.includes('frete')) {
-            products.push({ name: line, qty: 1, price: 0 });
+            productLines.push(line);
           }
         }
       });
+
+      // BUSCA INTELIGENTE: Para cada linha de produto, busca na Shopify
+      for (const productLine of productLines) {
+        const matchedProduct = await searchProductSmart(productLine);
+        if (matchedProduct) {
+          const variant = matchedProduct.variants?.[0];
+          products.push({
+            id: matchedProduct.id,
+            variantId: variant?.id,
+            name: matchedProduct.title,
+            variantName: variant?.title || matchedProduct.title,
+            qty: 1,
+            price: variant?.price || 0,
+            originalQuery: productLine
+          });
+        } else {
+          // Se não encontrar, adiciona o texto original
+          products.push({
+            name: productLine,
+            qty: 1,
+            price: 0,
+            notFound: true
+          });
+        }
+      }
 
       // Preenche o formulário
       document.getElementById('createOrderCustomerName').value = name;
@@ -1902,16 +2128,30 @@ Retirar na loja"
           if (idx > 0) addCreateOrderItem();
           const itemDiv = document.querySelector(`[data-create-item-index="${idx}"]`);
           if (itemDiv) {
-            itemDiv.querySelector('.create-order-item-name').value = prod.name;
+            const select = itemDiv.querySelector('.create-order-item-name');
+            if (!prod.notFound) {
+              // Se encontrou o produto, seleciona na lista
+              select.value = prod.id;
+              updateItemPrice(select);
+            } else {
+              // Se não encontrou, mostra o texto original
+              select.value = '';
+            }
             itemDiv.querySelector('.create-order-item-qty').value = prod.qty;
-            itemDiv.querySelector('.create-order-item-price').value = prod.price;
+            if (prod.price) {
+              itemDiv.querySelector('.create-order-item-price').value = parseFloat(prod.price).toFixed(2);
+            }
           }
         });
       }
 
-      // Mostra o formulário
-      document.getElementById('createOrderFormContainer').style.display = 'block';
-      alert('✅ Dados analisados!\n\nReviseuos campos abaixo e preencha os preços dos produtos.');
+      // Rola para o formulário com pequeno delay
+      const formContainer = document.getElementById('createOrderFormContainer');
+      setTimeout(() => {
+        formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+
+      alert('✅ Dados analisados com sucesso!\n\n⚙️ Produtos sincronizados com a Shopify\n\nReviseuos campos abaixo e confirme os preços.');
     }
 
     // Submit do formulário de criar pedido
@@ -1998,7 +2238,13 @@ Retirar na loja"
     */
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
+      btn.addEventListener('click', () => {
+        setActiveTab(btn.dataset.tab);
+        // Carrega dados da Shopify quando a aba "Criar Pedido" é aberta
+        if (btn.dataset.tab === 'createOrder') {
+          loadShopifyData();
+        }
+      });
     });
 
     els.customerSearch.addEventListener('input', (e) => {

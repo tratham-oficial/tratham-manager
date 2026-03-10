@@ -9,7 +9,11 @@
       "Bash(git add -A)",
       "Bash(git commit -m \"feat: criar assistente IA poderoso para criar pedidos automaticamente:*)",
       "Bash(git push origin main)",
-      "Bash(git commit -m \"chore: atualizar configurações de permissões locais:*)"
+      "Bash(git commit -m \"chore: atualizar configurações de permissões locais:*)",
+      "Bash(vercel ls)",
+      "Bash(vercel --version)",
+      "Bash(npm install --save-dev vercel)",
+      "Bash(pkill -f \"vercel dev\")"
     ]
   }
 }
