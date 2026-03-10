@@ -1,4 +1,3 @@
-// IA Assistant - Powerful order creation system
 const API_VERSION = '2025-10';
 
 function getEnv() {
@@ -30,8 +29,10 @@ async function shopifyFetch(path, options = {}) {
   return { status: response.status, data };
 }
 
+// Busca cliente por nome, email ou telefone
 async function findCustomer(query) {
   if (!query || query.trim().length === 0) return null;
+
   const searchQuery = query.toLowerCase().trim();
   const { data } = await shopifyFetch(`/graphql.json`, {
     method: 'POST',
@@ -54,14 +55,17 @@ async function findCustomer(query) {
       variables: { query: searchQuery }
     })
   });
+
   if (data.data?.customers?.edges && data.data.customers.edges.length > 0) {
     return data.data.customers.edges[0].node;
   }
   return null;
 }
 
+// Busca produtos por nome ou SKU
 async function findProduct(query) {
   if (!query || query.trim().length === 0) return null;
+
   const searchQuery = query.toLowerCase().trim();
   const { data } = await shopifyFetch(`/graphql.json`, {
     method: 'POST',
@@ -92,12 +96,14 @@ async function findProduct(query) {
       variables: { query: searchQuery }
     })
   });
+
   if (data.data?.products?.edges && data.data.products.edges.length > 0) {
     return data.data.products.edges[0].node;
   }
   return null;
 }
 
+// Cria um rascunho de pedido (draft)
 async function createDraftOrder(customerId, lineItems) {
   const { data } = await shopifyFetch(`/graphql.json`, {
     method: 'POST',
@@ -132,15 +138,19 @@ async function createDraftOrder(customerId, lineItems) {
       }
     })
   });
+
   if (data.data?.draftOrderCreate?.draftOrder) {
     return data.data.draftOrderCreate.draftOrder;
   }
+
   if (data.data?.draftOrderCreate?.userErrors) {
     throw new Error(data.data.draftOrderCreate.userErrors[0].message);
   }
+
   throw new Error('Erro ao criar rascunho de pedido');
 }
 
+// Analisa o comando do usuário e extrai informações
 function analyzeCommand(prompt) {
   const text = String(prompt || '').toLowerCase();
   const analysis = {
@@ -154,6 +164,7 @@ function analyzeCommand(prompt) {
     productQuery: null
   };
 
+  // Detecta intenção de criar pedido
   if (
     text.includes('criar pedido') ||
     text.includes('novo pedido') ||
@@ -166,6 +177,7 @@ function analyzeCommand(prompt) {
     analysis.intent = 'create_order';
   }
 
+  // Detecta cliente
   const customerPatterns = [
     /para\s+([a-záéíóúâêôãõ\s]+?)(?:\s+com|$|,)/i,
     /cliente:\s*([a-záéíóúâêôãõ\s]+?)(?:,|$)/i,
@@ -182,6 +194,7 @@ function analyzeCommand(prompt) {
     }
   }
 
+  // Detecta produto
   const productPatterns = [
     /(\d+)?\s*([a-záéíóúâêôãõ\s\-]+?)\s+(?:em\s+|tamanho|cor|p\/|para)/i,
     /produto:\s*([a-záéíóúâêôãõ\s\-]+?)(?:,|$)/i,
@@ -201,6 +214,7 @@ function analyzeCommand(prompt) {
     }
   }
 
+  // Se não achou padrão específico, tenta extrair quantidade e produtos de forma mais genérica
   if (!analysis.productQuery) {
     const qtyMatch = prompt.match(/(\d+)\s+(un|peça|peças|unidade|unidades|camiseta|camisetas|produto|produtos|item|itens)/i);
     if (qtyMatch) {
@@ -218,20 +232,24 @@ function analyzeCommand(prompt) {
   return analysis;
 }
 
+// Processa o comando e toma ações inteligentes
 async function processCommand(prompt) {
   const analysis = analyzeCommand(prompt);
 
   if (analysis.intent === 'create_order') {
+    // Busca cliente
     let customer = null;
     if (analysis.customerQuery) {
       customer = await findCustomer(analysis.customerQuery);
     }
 
+    // Busca produto
     let product = null;
     if (analysis.productQuery) {
       product = await findProduct(analysis.productQuery);
     }
 
+    // Tenta criar o pedido
     if (customer && product) {
       const variant = product.variants?.edges?.[0]?.node;
       if (!variant) {
@@ -292,60 +310,4 @@ async function processCommand(prompt) {
   };
 }
 
-export default async function handler(req, res) {
-  try {
-    if (req.method === 'GET') {
-      return res.status(200).json({
-        ok: true,
-        status: 'ready',
-        mode: 'production',
-        capabilities: [
-          'Criar pedidos automaticamente com inteligência natural',
-          'Buscar clientes por nome, email ou telefone',
-          'Buscar produtos por nome ou SKU',
-          'Gerar rascunhos de pedidos (Draft Orders)',
-          'Processar comandos em linguagem natural'
-        ],
-        supportedIntents: [
-          'create_order',
-          'find_customer',
-          'find_product',
-          'general_assistant'
-        ],
-        examples: [
-          'Criar pedido de 2 camisetas azuis para João Silva',
-          'Quero pedir 1 produto xyz para cliente@email.com',
-          'Encomendar 3 unidades de calça tamanho G para Maria'
-        ]
-      });
-    }
-
-    if (req.method !== 'POST') {
-      return res.status(405).json({ ok: false, error: 'Method not allowed' });
-    }
-
-    const prompt = String(req.body?.prompt || '').trim();
-
-    if (!prompt) {
-      return res.status(400).json({
-        ok: false,
-        error: 'O campo prompt é obrigatório.'
-      });
-    }
-
-    const response = await processCommand(prompt);
-
-    return res.status(200).json({
-      ok: response.success,
-      ...response,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('ai.js error:', error);
-    return res.status(500).json({
-      ok: false,
-      error: error.message || 'Erro interno na rota de IA.',
-      errorType: error.name
-    });
-  }
-}
+export { processCommand, analyzeCommand, findCustomer, findProduct, createDraftOrder };

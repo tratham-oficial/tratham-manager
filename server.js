@@ -6,6 +6,85 @@ const url = require('url');
 const PORT = 3000;
 
 // Mock de dados
+// IA Command Analysis
+function analyzeCommand(prompt) {
+  const text = String(prompt || '').toLowerCase();
+  const analysis = {
+    intent: 'unknown',
+    keywords: [],
+    hasCustomer: false,
+    hasProduct: false,
+    hasQuantity: false,
+    quantity: 1,
+    customerQuery: null,
+    productQuery: null
+  };
+
+  if (
+    text.includes('criar pedido') ||
+    text.includes('novo pedido') ||
+    text.includes('montar pedido') ||
+    text.includes('quero pedir') ||
+    text.includes('fazer pedido') ||
+    text.includes('encomendar') ||
+    text.includes('comprar')
+  ) {
+    analysis.intent = 'create_order';
+  }
+
+  const customerPatterns = [
+    /para\s+([a-záéíóúâêôãõ\s]+?)(?:\s+com|$|,)/i,
+    /cliente:\s*([a-záéíóúâêôãõ\s]+?)(?:,|$)/i,
+    /nome:\s*([a-záéíóúâêôãõ\s]+?)(?:,|$)/i,
+    /sr\.?\s+([a-záéíóúâêôãõ\s]+?)(?:\s|,|$)/i
+  ];
+
+  for (const pattern of customerPatterns) {
+    const match = prompt.match(pattern);
+    if (match && match[1]) {
+      analysis.customerQuery = match[1].trim();
+      analysis.hasCustomer = true;
+      break;
+    }
+  }
+
+  const productPatterns = [
+    /(\d+)?\s*([a-záéíóúâêôãõ\s\-]+?)\s+(?:em\s+|tamanho|cor|p\/|para)/i,
+    /produto:\s*([a-záéíóúâêôãõ\s\-]+?)(?:,|$)/i,
+    /item:\s*([a-záéíóúâêôãõ\s\-]+?)(?:,|$)/i
+  ];
+
+  for (const pattern of productPatterns) {
+    const match = prompt.match(pattern);
+    if (match && match[2]) {
+      analysis.productQuery = match[2].trim();
+      analysis.hasProduct = true;
+      if (match[1]) {
+        analysis.quantity = parseInt(match[1]) || 1;
+        analysis.hasQuantity = true;
+      }
+      break;
+    }
+  }
+
+  if (!analysis.productQuery) {
+    const qtyMatch = prompt.match(/(\d+)\s+(un|peça|peças|unidade|unidades|camiseta|camisetas|produto|produtos|item|itens)/i);
+    if (qtyMatch) {
+      analysis.quantity = parseInt(qtyMatch[1]) || 1;
+      analysis.hasQuantity = true;
+    }
+
+    const generalMatch = prompt.match(/(?:de|com)\s+([a-záéíóúâêôãõ\s\-]+?)(?:,|\s+(?:para|tamanho|cor)|$)/i);
+    if (generalMatch) {
+      analysis.productQuery = generalMatch[1].trim();
+      analysis.hasProduct = true;
+    }
+  }
+
+  return analysis;
+}
+
+// Mock de dados
 const mockData = {
   orders: [
     {
@@ -96,23 +175,106 @@ const server = http.createServer((req, res) => {
   } else if (pathname === '/api/ai') {
     if (req.method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        ok: true, 
+      res.end(JSON.stringify({
+        ok: true,
         status: 'ready',
-        supportedIntents: ['create_order', 'find_customer', 'find_product', 'dashboard_summary']
+        capabilities: [
+          'Criar pedidos automaticamente com inteligência natural',
+          'Buscar clientes por nome, email ou telefone',
+          'Buscar produtos por nome ou SKU',
+          'Gerar rascunhos de pedidos (Draft Orders)',
+          'Processar comandos em linguagem natural'
+        ],
+        supportedIntents: ['create_order', 'find_customer', 'find_product', 'general_assistant'],
+        examples: [
+          'Criar pedido de 2 camisetas azuis para João Silva',
+          'Quero pedir 1 produto xyz para cliente@email.com',
+          'Encomendar 3 unidades de calça tamanho G para Maria'
+        ]
       }));
     } else if (req.method === 'POST') {
       let body = '';
       req.on('data', chunk => body += chunk);
       req.on('end', () => {
         const data = JSON.parse(body);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-          ok: true,
-          prompt: data.prompt,
-          message: 'Comando recebido. Modo mock.',
-          intent: 'general_assistant'
-        }));
+        const prompt = data.prompt || '';
+
+        // Analisa o comando
+        const analysis = analyzeCommand(prompt);
+
+        if (analysis.intent === 'create_order') {
+          // Busca cliente nos dados mock
+          const customerQuery = (analysis.customerQuery || '').toLowerCase();
+          const customer = mockData.customers.find(c => {
+            const fullName = (c.first_name + ' ' + c.last_name).toLowerCase();
+            return fullName.includes(customerQuery) ||
+                   c.first_name.toLowerCase().includes(customerQuery) ||
+                   c.email.toLowerCase().includes(customerQuery);
+          });
+
+          // Busca produto nos dados mock
+          const productQuery = (analysis.productQuery || '').toLowerCase();
+          const product = mockData.products.find(p =>
+            p.title.toLowerCase().includes(productQuery)
+          );
+
+          if (customer && product) {
+            const response = {
+              ok: true,
+              success: true,
+              action: 'order_created',
+              message: `✅ Pedido criado com sucesso para ${customer.first_name}!`,
+              details: {
+                customer: {
+                  name: customer.first_name + ' ' + customer.last_name,
+                  email: customer.email
+                },
+                product: product.title,
+                quantity: analysis.quantity || 1,
+                draftOrderId: 'draft_' + Math.random().toString(36).substr(2, 9),
+                invoiceUrl: `https://admin.shopify.com/orders/draft_${Math.random().toString(36).substr(2, 9)}`
+              },
+              timestamp: new Date().toISOString()
+            };
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(response));
+          } else if (!customer) {
+            const response = {
+              ok: false,
+              success: false,
+              action: 'missing_customer',
+              message: `⚠️ Cliente não encontrado. Procurei por: "${analysis.customerQuery || 'não especificado'}"`,
+              suggestion: 'Informe o nome, email ou telefone do cliente.',
+              analysis,
+              timestamp: new Date().toISOString()
+            };
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(response));
+          } else {
+            const response = {
+              ok: false,
+              success: false,
+              action: 'missing_product',
+              message: `⚠️ Produto não encontrado. Procurei por: "${analysis.productQuery || 'não especificado'}"`,
+              suggestion: 'Especifique o nome ou SKU do produto.',
+              analysis,
+              timestamp: new Date().toISOString()
+            };
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(response));
+          }
+        } else {
+          const response = {
+            ok: false,
+            success: false,
+            action: 'unclear_intent',
+            message: '🤔 Não consegui entender o comando. Tente algo como: "criar pedido de 2 camisetas azuis para João Silva"',
+            analysis,
+            timestamp: new Date().toISOString()
+          };
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(response));
+        }
       });
     }
   } else {

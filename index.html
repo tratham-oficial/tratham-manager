@@ -548,35 +548,43 @@
     <section class="section" id="assistantSection">
       <div class="panel">
         <div class="panel-title">
-          <h2>Assistente IA</h2>
-          <span class="muted">Base pronta para evoluir para operador da Shopify.</span>
+          <h2>🤖 Assistente IA Poderoso</h2>
+          <span class="muted">Cria pedidos automaticamente com inteligência natural</span>
+        </div>
+
+        <div style="margin-bottom:20px; padding:14px; background:#1a3a1a; border:1px solid #22c55e40; border-radius:12px;">
+          <div style="color:#22c55e; font-size:13px; font-weight:600; margin-bottom:8px;">⚡ Exemplos de Comandos:</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px;">
+            <div>• Criar 2 camisetas azuis para João Silva</div>
+            <div>• Pedido de 1 calça G para maria@email.com</div>
+            <div>• Encomendar 3 itens de produto XYZ</div>
+            <div>• Montar pedido de camiseta preta tamanho P</div>
+          </div>
         </div>
 
         <form id="assistantForm" class="stack">
           <div>
-            <label for="assistantPrompt">Comando</label>
+            <label for="assistantPrompt">Comando em Linguagem Natural</label>
             <textarea
               id="assistantPrompt"
-              rows="6"
-              placeholder="Ex: encontre o cliente Arthur e prepare um pedido com 1 camiseta suedine preta tamanho M"
+              rows="4"
+              placeholder="Ex: Criar pedido de 2 camisetas azuis tamanho M para João Silva"
               required
             ></textarea>
           </div>
 
           <div>
-            <button class="btn btn-primary" type="submit">Enviar para IA</button>
+            <button class="btn btn-primary" type="submit">⚡ Enviar para IA</button>
           </div>
         </form>
 
-        <div class="stack" style="margin-top:16px;">
-          <div>
-            <div class="muted" style="margin-bottom:8px;">Resposta</div>
-            <div id="assistantResponse" class="response-box">Aguardando comando.</div>
-          </div>
+        <div class="stack" style="margin-top:20px;">
+          <div style="color:var(--muted); font-size:13px; margin-bottom:8px;">📊 Resposta</div>
+          <div id="assistantResponse" class="response-box" style="min-height:200px; white-space:pre-wrap; font-size:12px;">Aguardando comando...</div>
         </div>
 
-        <div class="footer-note">
-          Esta rota já responde em formato estruturado para depois evoluir para intents como buscar cliente, buscar produto e criar pedido.
+        <div class="footer-note" style="background:#2a3a2a; border-left:3px solid #22c55e;">
+          ✨ O assistente detecta clientes, busca produtos e cria rascunhos de pedidos automaticamente na Shopify. Use linguagem natural!
         </div>
       </div>
     </section>
@@ -1200,7 +1208,7 @@
       try {
         const submitBtn = els.assistantForm.querySelector('button[type="submit"]');
         setLoading(submitBtn, true);
-        els.assistantResponse.textContent = 'Processando comando...';
+        els.assistantResponse.textContent = '⏳ Processando comando...';
 
         const data = await fetchJson('/api/ai', {
           method: 'POST',
@@ -1210,10 +1218,39 @@
           body: JSON.stringify({ prompt })
         });
 
-        els.assistantResponse.textContent = JSON.stringify(data, null, 2);
+        // Formata a resposta de forma visual
+        let displayText = '';
+
+        if (data.ok && data.success) {
+          displayText += '✅ SUCESSO!\n\n';
+          displayText += `Mensagem: ${data.message}\n\n`;
+
+          if (data.details) {
+            displayText += '📋 Detalhes do Pedido:\n';
+            displayText += `  • Cliente: ${data.details.customer?.name || 'N/A'}\n`;
+            displayText += `  • Email: ${data.details.customer?.email || 'N/A'}\n`;
+            displayText += `  • Produto: ${data.details.product || 'N/A'}\n`;
+            displayText += `  • Quantidade: ${data.details.quantity || 1}\n`;
+            displayText += `  • ID do Pedido: ${data.details.draftOrderId || 'N/A'}\n`;
+            if (data.details.invoiceUrl) {
+              displayText += `  • Link: ${data.details.invoiceUrl}\n`;
+            }
+          }
+        } else if (!data.ok && data.suggestion) {
+          displayText += `⚠️ ${data.message || 'Erro ao processar'}\n\n`;
+          displayText += `💡 Sugestão: ${data.suggestion}\n`;
+          displayText += `\nAnalise do comando:\n${JSON.stringify(data.analysis, null, 2)}`;
+        } else if (!data.ok) {
+          displayText += `❌ Erro: ${data.error || 'Erro desconhecido'}\n`;
+          displayText += `\nResposta completa:\n${JSON.stringify(data, null, 2)}`;
+        } else {
+          displayText += JSON.stringify(data, null, 2);
+        }
+
+        els.assistantResponse.textContent = displayText;
       } catch (error) {
         console.error('Erro na IA:', error);
-        els.assistantResponse.textContent = `Erro: ${error.message}`;
+        els.assistantResponse.textContent = `❌ Erro: ${error.message}\n\nTente novamente ou verifique o console para mais detalhes.`;
       } finally {
         const submitBtn = els.assistantForm.querySelector('button[type="submit"]');
         setLoading(submitBtn, false);
