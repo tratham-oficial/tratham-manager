@@ -2128,15 +2128,25 @@ Retirar na loja"
           if (idx > 0) addCreateOrderItem();
           const itemDiv = document.querySelector(`[data-create-item-index="${idx}"]`);
           if (itemDiv) {
-            const select = itemDiv.querySelector('.create-order-item-name');
+            const productSelect = itemDiv.querySelector('.create-order-item-product');
+            const variantSelect = itemDiv.querySelector('.create-order-item-variant');
+
             if (!prod.notFound) {
               // Se encontrou o produto, seleciona na lista
-              select.value = prod.id;
-              updateItemPrice(select);
-            } else {
-              // Se não encontrou, mostra o texto original
-              select.value = '';
+              productSelect.value = prod.id;
+
+              // Dispara a atualização de variantes
+              updateItemVariants(productSelect, idx);
+
+              // Se tem variante específica, seleciona também
+              if (prod.variantId) {
+                setTimeout(() => {
+                  variantSelect.value = prod.variantId;
+                  updateItemPrice(variantSelect, idx);
+                }, 50);
+              }
             }
+
             itemDiv.querySelector('.create-order-item-qty').value = prod.qty;
             if (prod.price) {
               itemDiv.querySelector('.create-order-item-price').value = parseFloat(prod.price).toFixed(2);

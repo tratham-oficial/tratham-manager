@@ -13,7 +13,12 @@
       "Bash(vercel ls)",
       "Bash(vercel --version)",
       "Bash(npm install --save-dev vercel)",
-      "Bash(pkill -f \"vercel dev\")"
+      "Bash(pkill -f \"vercel dev\")",
+      "Bash(git commit -m \"feat: integração completa de produtos e variantes da Shopify com busca inteligente:*)",
+      "Bash(lsof -i :3000)",
+      "Bash(kill 34215)",
+      "Bash(vercel whoami)",
+      "Bash(npm install -g vercel)"
     ]
   }
 }
