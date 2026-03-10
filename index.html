@@ -1895,9 +1895,7 @@ Retirar na loja"
       }
     }
 
-    // Executa quando o DOM estiver pronto
-    document.addEventListener('DOMContentLoaded', setupCEPListener);
-    // Também tenta executar imediatamente em caso de DOM já estar pronto
+    // Executa quando o DOM estiver pronto, ou imediatamente se já está pronto
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', setupCEPListener);
     } else {
@@ -2346,8 +2344,12 @@ Retirar na loja"
         };
 
         document.querySelectorAll('[data-create-item-index]').forEach(item => {
+          const productSelect = item.querySelector('.create-order-item-product');
+          const selectedOption = productSelect.options[productSelect.selectedIndex];
+          const productName = selectedOption.textContent || selectedOption.getAttribute('data-title') || '';
+
           orderData.items.push({
-            name: item.querySelector('.create-order-item-name').value,
+            name: productName,
             quantity: parseFloat(item.querySelector('.create-order-item-qty').value),
             price: parseFloat(item.querySelector('.create-order-item-price').value)
           });
