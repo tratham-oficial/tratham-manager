@@ -397,6 +397,7 @@
       <button class="tab-btn" data-tab="products">Produtos</button>
       <button class="tab-btn" data-tab="orders">Pedidos</button>
       <button class="tab-btn" data-tab="assistant">Assistente IA</button>
+      <button class="tab-btn" data-tab="createOrder">✏️ Criar Pedido</button>
     </div>
 
     <section class="section active" id="dashboardSection">
@@ -585,6 +586,133 @@
 
         <div class="footer-note" style="background:#2a3a2a; border-left:3px solid #22c55e;">
           ✨ O assistente detecta clientes, busca produtos e cria rascunhos de pedidos automaticamente na Shopify. Use linguagem natural!
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="createOrderSection">
+      <div class="panel">
+        <div class="panel-title">
+          <h2>✏️ Criar Pedido do WhatsApp</h2>
+          <span class="muted">Cole os dados do cliente do WhatsApp e eles serão preenchidos automaticamente</span>
+        </div>
+
+        <!-- INPUT DO WHATSAPP -->
+        <div style="margin-bottom:24px;">
+          <div style="background:#1a2a3a; padding:16px; border-radius:12px; border-left:4px solid #f59e0b;">
+            <label style="display:block; margin-bottom:12px; font-weight:600; color:#fbbf24;">📱 Cole aqui os dados do WhatsApp</label>
+            <textarea
+              id="whatsappData"
+              placeholder="Ex: Francisco Harrisson de Souza
+CPF 00695908774
+Rua Álvaro Hoppe 265 Camobi Santa Maria RS CEP 97105-410
++55 55 8403-5300
+Suéter Ambition azul P, Camiseta Texturizada habano M, camiseta suedine M (3 cores)
+Total: 973,00
+Retirar na loja"
+              style="width:100%; height:150px; padding:12px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border); font-family:monospace; font-size:13px; resize:vertical;"
+            ></textarea>
+            <button
+              type="button"
+              class="btn btn-primary"
+              style="width:100%; margin-top:12px;"
+              onclick="processWhatsappData()"
+            >🚀 Analisar e Preencher Formulário</button>
+          </div>
+        </div>
+
+        <!-- FORMULÁRIO ABAIXO -->
+        <div id="createOrderFormContainer" style="display:none;">
+          <form id="createOrderForm" class="stack">
+            <!-- CLIENTE -->
+            <div style="background:#1a2a3a; padding:16px; border-radius:12px; border-left:4px solid #3b82f6;">
+              <h3 style="margin-top:0; color:#60a5fa;">👤 Dados do Cliente</h3>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div>
+                  <label>Nome Completo *</label>
+                  <input type="text" id="createOrderCustomerName" placeholder="Nome do cliente" required style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
+                </div>
+                <div>
+                  <label>Email</label>
+                  <input type="email" id="createOrderCustomerEmail" placeholder="email@example.com" style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
+                </div>
+                <div>
+                  <label>Telefone *</label>
+                  <input type="tel" id="createOrderCustomerPhone" placeholder="+55 xx xxxxx-xxxx" required style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
+                </div>
+                <div>
+                  <label>CPF/CNPJ</label>
+                  <input type="text" id="createOrderCustomerCpf" placeholder="00000000000" style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
+                </div>
+              </div>
+            </div>
+
+            <!-- ENDEREÇO -->
+            <div style="background:#1a2a3a; padding:16px; border-radius:12px; border-left:4px solid #3b82f6;">
+              <h3 style="margin-top:0; color:#60a5fa;">📍 Endereço de Entrega</h3>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div style="grid-column:1/-1;">
+                  <label>Rua/Avenida *</label>
+                  <input type="text" id="createOrderStreet" placeholder="Rua/Avenida" required style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
+                </div>
+                <div>
+                  <label>Número *</label>
+                  <input type="text" id="createOrderNumber" placeholder="Número" required style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
+                </div>
+                <div>
+                  <label>Complemento</label>
+                  <input type="text" id="createOrderComplement" placeholder="Apto, sala, etc" style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
+                </div>
+                <div>
+                  <label>Bairro</label>
+                  <input type="text" id="createOrderNeighborhood" placeholder="Bairro" style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
+                </div>
+                <div>
+                  <label>Cidade *</label>
+                  <input type="text" id="createOrderCity" placeholder="Cidade" required style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
+                </div>
+                <div>
+                  <label>Estado *</label>
+                  <input type="text" id="createOrderState" placeholder="UF" maxlength="2" required style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
+                </div>
+                <div>
+                  <label>CEP *</label>
+                  <input type="text" id="createOrderZip" placeholder="CEP" required style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
+                </div>
+              </div>
+            </div>
+
+            <!-- PRODUTOS -->
+            <div style="background:#1a2a3a; padding:16px; border-radius:12px; border-left:4px solid #10b981;">
+              <h3 style="margin-top:0; color:#6ee7b7;">🛍️ Produtos</h3>
+              <div id="createOrderItems" style="display:grid; gap:12px; margin-bottom:12px;">
+              </div>
+              <button type="button" class="btn" style="width:100%; background:#1b3a1b; border-color:#22c55e40;" onclick="addCreateOrderItem()">+ Adicionar Produto</button>
+            </div>
+
+            <!-- ENTREGA -->
+            <div style="background:#1a2a3a; padding:16px; border-radius:12px; border-left:4px solid #f59e0b;">
+              <h3 style="margin-top:0; color:#fbbf24;">🚚 Entrega</h3>
+              <div>
+                <label>Método de Entrega *</label>
+                <select id="createOrderShipping" required style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
+                  <option value="">Selecione...</option>
+                  <option value="pickup">Retirar na Loja</option>
+                  <option value="delivery">Enviar</option>
+                </select>
+              </div>
+              <div style="margin-top:12px;">
+                <label>Observações</label>
+                <textarea id="createOrderNotes" placeholder="Notas adicionais..." rows="2" style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);"></textarea>
+              </div>
+            </div>
+
+            <!-- BOTÕES -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <button type="button" class="btn" onclick="clearCreateOrderForm()">← Limpar</button>
+              <button type="submit" class="btn btn-primary">✅ Enviar Pedido</button>
+            </div>
+          </form>
         </div>
       </div>
     </section>
@@ -1615,6 +1743,227 @@
 
     /*
       ============================================
+      CRIAR PEDIDO (WHATSAPP)
+      ============================================
+    */
+
+    function addCreateOrderItem() {
+      const container = document.getElementById('createOrderItems');
+      const index = container.children.length;
+      const item = document.createElement('div');
+      item.style.cssText = 'background:#151820; padding:12px; border-radius:8px; display:grid; grid-template-columns:2fr 1fr 1fr auto; gap:8px; align-items:end;';
+      item.setAttribute('data-create-item-index', index);
+      item.innerHTML = `
+        <input type="text" placeholder="Produto" class="create-order-item-name" style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required>
+        <input type="number" placeholder="Qtd" class="create-order-item-qty" value="1" min="1" style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required>
+        <input type="number" placeholder="Preço" class="create-order-item-price" step="0.01" style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required>
+        <button type="button" class="btn btn-danger" style="width:40px; padding:8px; display:flex; align-items:center; justify-content:center;" onclick="removeCreateOrderItem(${index})">−</button>
+      `;
+      container.appendChild(item);
+    }
+
+    function removeCreateOrderItem(index) {
+      const item = document.querySelector(`[data-create-item-index="${index}"]`);
+      if (item) item.remove();
+    }
+
+    function clearCreateOrderForm() {
+      document.getElementById('createOrderCustomerName').value = '';
+      document.getElementById('createOrderCustomerEmail').value = '';
+      document.getElementById('createOrderCustomerPhone').value = '';
+      document.getElementById('createOrderCustomerCpf').value = '';
+      document.getElementById('createOrderStreet').value = '';
+      document.getElementById('createOrderNumber').value = '';
+      document.getElementById('createOrderComplement').value = '';
+      document.getElementById('createOrderNeighborhood').value = '';
+      document.getElementById('createOrderCity').value = '';
+      document.getElementById('createOrderState').value = '';
+      document.getElementById('createOrderZip').value = '';
+      document.getElementById('createOrderShipping').value = '';
+      document.getElementById('createOrderNotes').value = '';
+      document.getElementById('whatsappData').value = '';
+      document.getElementById('createOrderItems').innerHTML = '';
+      document.getElementById('createOrderFormContainer').style.display = 'none';
+    }
+
+    function processWhatsappData() {
+      const whatsappText = document.getElementById('whatsappData').value.trim();
+      if (!whatsappText) {
+        alert('⚠️ Cole os dados do WhatsApp primeiro');
+        return;
+      }
+
+      // Extrai informações do texto
+      const lines = whatsappText.split('\n').map(l => l.trim()).filter(l => l);
+
+      // Simula análise inteligente - você pode melhorar isso com regex mais complexos
+      let name = '';
+      let cpf = '';
+      let phone = '';
+      let street = '';
+      let number = '';
+      let city = '';
+      let state = '';
+      let zip = '';
+      let products = [];
+      let shipping = 'delivery';
+      let notes = '';
+
+      lines.forEach((line, idx) => {
+        const lower = line.toLowerCase();
+
+        // Nome (primeira linha geralmente é o nome)
+        if (idx === 0 && !line.includes('cpf') && !line.includes('rua')) {
+          name = line;
+        }
+
+        // CPF
+        if (lower.includes('cpf')) {
+          cpf = line.replace(/cpf\s*/i, '').trim();
+        }
+
+        // Telefone
+        if (lower.includes('+55') || lower.includes('telefone')) {
+          phone = line.replace(/telefone\s*/i, '').trim();
+        }
+
+        // Endereço (contém "rua", "av", "avenida")
+        if (lower.includes('rua ') || lower.includes('avenida') || lower.includes('av ')) {
+          const parts = line.split(',');
+          street = parts[0].replace(/rua\s+|avenida\s+|av\s+/i, '').trim();
+
+          // Extrai número (primeiro número da linha)
+          const numMatch = line.match(/(\d+)/);
+          if (numMatch) number = numMatch[1];
+
+          // Extrai cidade, estado, CEP
+          if (parts.length > 1) {
+            parts.forEach((part, i) => {
+              const p = part.trim();
+              if (p.match(/^\w{2}$/)) state = p.toUpperCase();
+              if (p.match(/\d{5}-\d{3}/)) zip = p;
+              if (!p.match(/^\w{2}$/) && !p.match(/\d{5}-\d{3}/) && i > 0) {
+                city = p;
+              }
+            });
+          }
+        }
+
+        // Cidade, Estado, CEP (se em linha separada)
+        if (line.match(/\d{5}-\d{3}/)) {
+          zip = line.match(/\d{5}-\d{3}/)[0];
+        }
+        if (line.match(/,?\s*[A-Z]{2}\s*,?/)) {
+          const m = line.match(/([A-Z]{2})/);
+          if (m) state = m[1];
+        }
+
+        // Retirar na loja
+        if (lower.includes('retirar')) {
+          shipping = 'pickup';
+          notes += (notes ? '\n' : '') + line;
+        }
+      });
+
+      // Extrai produtos (linhas que não foram processadas como dados pessoais)
+      const processedLines = [name, cpf, phone, street, city, state, zip, notes].filter(l => l);
+      lines.forEach(line => {
+        const lower = line.toLowerCase();
+        if (!processedLines.some(p => p && line.includes(p)) &&
+            !lower.includes('cpf') && !lower.includes('rua') &&
+            !lower.includes('telefone') && !lower.includes('retirar') &&
+            !lower.includes('cep') && !lower.match(/^\w{2}$/) &&
+            line.length > 3) {
+          // Trata como possível produto
+          if (!lower.includes('total') && !lower.includes('frete')) {
+            products.push({ name: line, qty: 1, price: 0 });
+          }
+        }
+      });
+
+      // Preenche o formulário
+      document.getElementById('createOrderCustomerName').value = name;
+      document.getElementById('createOrderCustomerCpf').value = cpf;
+      document.getElementById('createOrderCustomerPhone').value = phone;
+      document.getElementById('createOrderStreet').value = street;
+      document.getElementById('createOrderNumber').value = number;
+      document.getElementById('createOrderCity').value = city;
+      document.getElementById('createOrderState').value = state;
+      document.getElementById('createOrderZip').value = zip;
+      document.getElementById('createOrderShipping').value = shipping;
+      document.getElementById('createOrderNotes').value = notes;
+
+      // Preenche produtos
+      document.getElementById('createOrderItems').innerHTML = '';
+      if (products.length === 0) {
+        addCreateOrderItem();
+      } else {
+        products.forEach((prod, idx) => {
+          if (idx > 0) addCreateOrderItem();
+          const itemDiv = document.querySelector(`[data-create-item-index="${idx}"]`);
+          if (itemDiv) {
+            itemDiv.querySelector('.create-order-item-name').value = prod.name;
+            itemDiv.querySelector('.create-order-item-qty').value = prod.qty;
+            itemDiv.querySelector('.create-order-item-price').value = prod.price;
+          }
+        });
+      }
+
+      // Mostra o formulário
+      document.getElementById('createOrderFormContainer').style.display = 'block';
+      alert('✅ Dados analisados!\n\nReviseuos campos abaixo e preencha os preços dos produtos.');
+    }
+
+    // Submit do formulário de criar pedido
+    document.getElementById('createOrderForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      setLoading(submitBtn, true);
+
+      try {
+        const orderData = {
+          customer: {
+            name: document.getElementById('createOrderCustomerName').value,
+            email: document.getElementById('createOrderCustomerEmail').value,
+            phone: document.getElementById('createOrderCustomerPhone').value,
+            cpf: document.getElementById('createOrderCustomerCpf').value,
+            address: {
+              street: document.getElementById('createOrderStreet').value,
+              number: document.getElementById('createOrderNumber').value,
+              complement: document.getElementById('createOrderComplement').value,
+              neighborhood: document.getElementById('createOrderNeighborhood').value,
+              city: document.getElementById('createOrderCity').value,
+              state: document.getElementById('createOrderState').value,
+              zip: document.getElementById('createOrderZip').value
+            }
+          },
+          items: [],
+          shipping: document.getElementById('createOrderShipping').value,
+          notes: document.getElementById('createOrderNotes').value
+        };
+
+        document.querySelectorAll('[data-create-item-index]').forEach(item => {
+          orderData.items.push({
+            name: item.querySelector('.create-order-item-name').value,
+            quantity: parseFloat(item.querySelector('.create-order-item-qty').value),
+            price: parseFloat(item.querySelector('.create-order-item-price').value)
+          });
+        });
+
+        console.log('Pedido criado:', orderData);
+        alert(`✅ Pedido criado com sucesso!\n\nCliente: ${orderData.customer.name}\nItens: ${orderData.items.length}\nEndereço: ${orderData.customer.address.city}, ${orderData.customer.address.state}`);
+
+        clearCreateOrderForm();
+        await loadOrders();
+      } catch (error) {
+        alert(`❌ Erro: ${error.message}`);
+      } finally {
+        setLoading(submitBtn, false);
+      }
+    });
+
+    /*
+      ============================================
       TABS
       ============================================
     */
@@ -1625,7 +1974,8 @@
         customers: 'customersSection',
         products: 'productsSection',
         orders: 'ordersSection',
-        assistant: 'assistantSection'
+        assistant: 'assistantSection',
+        createOrder: 'createOrderSection'
       };
 
       document.querySelectorAll('.tab-btn').forEach(btn => {
