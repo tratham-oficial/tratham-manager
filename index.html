@@ -1761,7 +1761,11 @@ Retirar na loja"
         });
         const result = await response.json();
 
-        // Busca por fuzzy matching nos produtos carregados
+        // Primeiro tenta buscar por alias (sinônimos)
+        let matchedProduct = findProductByAlias(query);
+        if (matchedProduct) return matchedProduct;
+
+        // Se não encontrou por alias, busca por fuzzy matching nos produtos carregados
         const queryLower = query.toLowerCase();
         let bestMatch = null;
         let bestScore = 0;
@@ -1813,6 +1817,63 @@ Retirar na loja"
         if (i > 0) costs[s2.length] = lastValue;
       }
       return costs[s2.length];
+    }
+
+    // Mapeamento de sinônimos de produtos
+    const productAliases = {
+      'ambition': ['ambition', 'suéter ambition', 'sueter ambition', 'suéter meio zíper', 'sueter meio ziper', 'sueter com ziper', 'suéter com zíper'],
+      'camiseta suedine': ['suedine', 'camiseta suedine', 'camiseta sudine', 'sudine'],
+      'camiseta texturizada': ['texturizada', 'camiseta texturizada', 'textirizada'],
+    };
+
+    // Busca CEP e completa endereço automaticamente
+    async function searchCEP(cep) {
+      try {
+        const cleanCEP = cep.replace(/\D/g, '');
+        if (cleanCEP.length !== 8) return null;
+
+        const response = await fetch(`https://viacep.com.br/ws/${cleanCEP}/json/`);
+        const data = await response.json();
+
+        if (data.erro) return null;
+
+        return {
+          street: data.logradouro || '',
+          city: data.localidade || '',
+          state: data.uf || '',
+          neighborhood: data.bairro || ''
+        };
+      } catch (error) {
+        console.error('Erro ao buscar CEP:', error);
+        return null;
+      }
+    }
+
+    // Event listener para auto-completar CEP
+    document.getElementById('createOrderZip')?.addEventListener('blur', async (e) => {
+      const cepValue = e.target.value.trim();
+      if (cepValue.length >= 8) {
+        const addressData = await searchCEP(cepValue);
+        if (addressData) {
+          if (addressData.street) document.getElementById('createOrderStreet').value = addressData.street;
+          if (addressData.city) document.getElementById('createOrderCity').value = addressData.city;
+          if (addressData.state) document.getElementById('createOrderState').value = addressData.state;
+          if (addressData.neighborhood) document.getElementById('createOrderNeighborhood').value = addressData.neighborhood;
+        }
+      }
+    });
+
+    // Função para encontrar produto por alias
+    function findProductByAlias(query) {
+      const queryLower = query.toLowerCase().trim();
+
+      for (const [productName, aliases] of Object.entries(productAliases)) {
+        if (aliases.some(alias => queryLower.includes(alias) || alias.includes(queryLower.split(' ')[0]))) {
+          // Busca o produto correspondente em shopifyProducts
+          return shopifyProducts.find(p => p.title.toLowerCase().includes(productName));
+        }
+      }
+      return null;
     }
 
     // Carrega produtos e formas de entrega da Shopify
