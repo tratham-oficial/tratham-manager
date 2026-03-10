@@ -102,9 +102,106 @@ O `vercel.json` está configurado com `cleanUrls: true`, permitindo chamadas sem
 - Confirme `SHOPIFY_SHOP` está no formato correto (ex: `minha-loja.myshopify.com`)
 - Verifique conexão com Shopify
 
+## 🤖 Assistente IA Poderoso
+
+### Funcionalidades
+O assistente IA processa comandos em linguagem natural português para automatizar criação de pedidos na Shopify:
+
+**Exemplos de comandos:**
+- "Criar 2 camisetas azuis para João Silva"
+- "Pedido de 1 calça G para maria@email.com"
+- "Encomendar 3 unidades de camiseta preta para Cliente XYZ"
+
+**Capacidades:**
+- Análise inteligente de intenção (criar pedido, buscar cliente, buscar produto)
+- Extração de cliente por nome, email ou telefone via regex
+- Extração de produto e quantidade
+- Busca em tempo real na Shopify
+- Criação automática de draft orders
+- Respostas formatadas com feedback visual (✅ ⚠️ 🤔)
+
+### Usando o Assistente
+1. Acesse a seção "🤖 Assistente IA Poderoso" no dashboard
+2. Digite um comando em linguagem natural
+3. O assistente analisa, busca cliente/produto e cria o draft order
+4. Visualize os detalhes e abra o link da fatura no Shopify
+
+## 📝 Deploy no Vercel
+
+### Passo 1: Verificar Configuração Local
+```bash
+# Verifique que tudo está commitado
+git status
+
+# Os logs devem mostrar a configuração do vercel.json atualizada
+git log --oneline | head -5
+```
+
+### Passo 2: Conectar ao Vercel (se necessário)
+Se este é seu primeiro deploy, conecte o projeto:
+
+```bash
+# Fazer login no Vercel (abre browser)
+npx vercel login
+
+# Ligar projeto ao Vercel
+npx vercel link
+```
+
+### Passo 3: Configurar Variáveis de Ambiente
+No painel do Vercel (https://vercel.com):
+
+1. Acesse seu projeto
+2. Vá em **Settings → Environment Variables**
+3. Adicione:
+   ```
+   SHOPIFY_SHOP=sua-loja.myshopify.com
+   SHOPIFY_ADMIN_TOKEN=seu_token_aqui
+   ```
+4. Clique "Save"
+
+### Passo 4: Fazer Deploy
+```bash
+# Deploy automático (se linked)
+npx vercel deploy --prod
+
+# Ou esperar push automático do GitHub (se integrado)
+git push origin main
+```
+
+### Verificar Deploy
+```bash
+# Ver logs do deployment
+npx vercel logs
+
+# Ou acesse a URL: https://seu-projeto.vercel.app
+```
+
+## 📝 Troubleshooting Vercel
+
+**Deployment não inicia?**
+- Verifique `vercel.json` está no root do projeto
+- Confirme que `package.json` tem scripts `dev` e `build`
+- Cheque se `.gitignore` não está excluindo arquivos importantes
+
+**Build falha?**
+```bash
+npx vercel logs --follow  # Ver logs em tempo real
+```
+
+**API retorna erro 500?**
+- Verifique se variáveis `SHOPIFY_SHOP` e `SHOPIFY_ADMIN_TOKEN` estão setadas no Vercel
+- Confirme que o token Shopify ainda é válido
+- Cheque logs: `npx vercel logs`
+
+**Endpoint /api/ai não funciona?**
+- Confirme `api/ai.js` tem `export default async function handler`
+- Variáveis de ambiente devem estar no painel do Vercel, não em `.env.local`
+
 ## 📈 Próximos passos
 
 - Integrar IA real (Claude, GPT) no endpoint `/api/ai`
 - Implementar autenticação
 - Criar sistema de notificações
 - Expandir operações automatizadas
+- Melhorar reconhecimento de linguagem natural
