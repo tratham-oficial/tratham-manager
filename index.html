@@ -1990,6 +1990,11 @@ Retirar na loja"
         return;
       }
 
+      // Garante que os produtos foram carregados
+      if (shopifyProducts.length === 0) {
+        await loadShopifyData();
+      }
+
       // Mostra indicador de carregamento
       alert('⏳ Analisando dados e buscando produtos na Shopify...');
 

@@ -18,7 +18,10 @@
       "Bash(lsof -i :3000)",
       "Bash(kill 34215)",
       "Bash(vercel whoami)",
-      "Bash(npm install -g vercel)"
+      "Bash(npm install -g vercel)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(git push --set-upstream origin main)"
     ]
   }
 }
