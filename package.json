@@ -4,7 +4,7 @@
   "description": "Painel operacional Shopify com base pronta para evoluir para operador por IA",
   "private": true,
   "engines": {
-    "node": "18.x"
+    "node": "20.x"
   },
   "scripts": {
     "dev": "vercel dev",
