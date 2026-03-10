@@ -1,6 +1,5 @@
 {
   "cleanUrls": true,
-  "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "env": {
     "NODE_ENV": "production"

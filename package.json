@@ -7,8 +7,7 @@
     "node": "20.x"
   },
   "scripts": {
-    "dev": "vercel dev",
-    "build": "vercel build"
+    "dev": "vercel dev"
   },
   "devDependencies": {
     "vercel": "^50.29.0"
