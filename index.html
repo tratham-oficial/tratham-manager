@@ -1533,6 +1533,35 @@
       }
     }
 
+    // Função para teste com dados reais
+    window.fillWithTestData = function() {
+      clearOrderForm();
+      fillOrderForm({
+        customer: {
+          name: 'Francisco Harrisson de Souza',
+          email: '',
+          phone: '+55 55 8403-5300',
+          cpf: '00695908774',
+          address: {
+            street: 'Rua Álvaro Hoppe',
+            number: '265',
+            complement: '',
+            neighborhood: 'Camobi',
+            city: 'Santa Maria',
+            state: 'RS',
+            zip: '97105-410'
+          }
+        },
+        items: [
+          { name: 'Suéter Ambition azul P', quantity: 1, price: 0 },
+          { name: 'Camiseta Texturizada habano M', quantity: 1, price: 0 },
+          { name: 'Camiseta suedine M', quantity: 3, price: 0 }
+        ],
+        shipping: 'pickup',
+        notes: 'Retirar na loja - Cliente pré-definido'
+      });
+    };
+
     orderForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const submitBtn = orderForm.querySelector('button[type="submit"]');
@@ -1572,7 +1601,7 @@
 
         // Aqui você pode enviar para a API de criar pedido
         console.log('Pedido a criar:', orderData);
-        alert(`✅ Pedido criado com sucesso!\n\nCliente: ${orderData.customer.name}\nItens: ${orderData.items.length}\nEndereco: ${orderData.customer.address.city}, ${orderData.customer.address.state}`);
+        alert(`✅ Pedido criado com sucesso!\n\nCliente: ${orderData.customer.name}\nItens: ${orderData.items.length}\nEndereço: ${orderData.customer.address.city}, ${orderData.customer.address.state}`);
 
         hideOrderForm();
         clearOrderForm();
