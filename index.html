@@ -588,6 +588,122 @@
         </div>
       </div>
     </section>
+
+    <section class="section" id="orderFormSection">
+      <div class="panel">
+        <div class="panel-title">
+          <h2>📋 Formulário de Pedido</h2>
+          <span class="muted">Revise e confirme os dados antes de criar o pedido</span>
+        </div>
+
+        <form id="orderForm" class="stack" style="display:none;">
+          <!-- CLIENTE -->
+          <div style="background:#1a2a3a; padding:16px; border-radius:12px; border-left:4px solid #3b82f6;">
+            <h3 style="margin-top:0; color:#60a5fa;">👤 Dados do Cliente</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <div>
+                <label>Nome Completo *</label>
+                <input type="text" id="orderCustomerName" placeholder="Francisco Harrisson de Souza" required>
+              </div>
+              <div>
+                <label>Email</label>
+                <input type="email" id="orderCustomerEmail" placeholder="email@example.com">
+              </div>
+              <div>
+                <label>Telefone *</label>
+                <input type="tel" id="orderCustomerPhone" placeholder="+55 55 8403-5300" required>
+              </div>
+              <div>
+                <label>CPF/CNPJ</label>
+                <input type="text" id="orderCustomerCpf" placeholder="00695908774">
+              </div>
+            </div>
+          </div>
+
+          <!-- ENDEREÇO DE ENTREGA -->
+          <div style="background:#1a2a3a; padding:16px; border-radius:12px; border-left:4px solid #3b82f6;">
+            <h3 style="margin-top:0; color:#60a5fa;">📍 Endereço de Entrega</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <div style="grid-column:1/-1;">
+                <label>Rua/Avenida *</label>
+                <input type="text" id="orderStreet" placeholder="Rua Álvaro Hoppe" required>
+              </div>
+              <div>
+                <label>Número *</label>
+                <input type="text" id="orderNumber" placeholder="265" required>
+              </div>
+              <div>
+                <label>Complemento</label>
+                <input type="text" id="orderComplement" placeholder="Apt 101">
+              </div>
+              <div>
+                <label>Bairro/Zona</label>
+                <input type="text" id="orderNeighborhood" placeholder="Camobi">
+              </div>
+              <div>
+                <label>Cidade *</label>
+                <input type="text" id="orderCity" placeholder="Santa Maria" required>
+              </div>
+              <div>
+                <label>Estado/UF *</label>
+                <input type="text" id="orderState" placeholder="RS" maxlength="2" required>
+              </div>
+              <div>
+                <label>CEP *</label>
+                <input type="text" id="orderZip" placeholder="97105-410" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- ITENS DO PEDIDO -->
+          <div style="background:#1a2a3a; padding:16px; border-radius:12px; border-left:4px solid #10b981;">
+            <h3 style="margin-top:0; color:#6ee7b7;">🛍️ Itens do Pedido</h3>
+            <div id="orderItems" style="display:grid; gap:12px;">
+              <div style="background:#151820; padding:12px; border-radius:8px; display:grid; grid-template-columns:2fr 1fr 1fr 1fr auto; gap:8px; align-items:end;">
+                <input type="text" placeholder="Produto" class="order-item-name" required>
+                <input type="number" placeholder="Qtd" class="order-item-qty" value="1" min="1" required>
+                <input type="number" placeholder="Preço" class="order-item-price" step="0.01" required>
+                <div style="color:var(--muted); font-size:12px;">Subtotal: <strong id="item-subtotal-0">R$ 0,00</strong></div>
+                <button type="button" class="btn btn-danger" style="width:40px; padding:8px; display:flex; align-items:center; justify-content:center;" onclick="removeOrderItem(0)">−</button>
+              </div>
+            </div>
+            <button type="button" class="btn" style="width:100%; margin-top:12px; background:#1b3a1b; border-color:#22c55e40;" onclick="addOrderItem()">+ Adicionar Produto</button>
+            <div style="margin-top:12px; padding:12px; background:#0f3a0f; border-radius:8px; text-align:right;">
+              <div style="color:var(--muted); font-size:12px; margin-bottom:6px;">TOTAL DO PEDIDO</div>
+              <div style="font-size:24px; font-weight:bold; color:#22c55e;" id="orderTotal">R$ 0,00</div>
+            </div>
+          </div>
+
+          <!-- ENTREGA -->
+          <div style="background:#1a2a3a; padding:16px; border-radius:12px; border-left:4px solid #f59e0b;">
+            <h3 style="margin-top:0; color:#fbbf24;">🚚 Entrega</h3>
+            <div>
+              <label>Método de Entrega *</label>
+              <select id="orderShipping" required style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
+                <option value="">Selecione...</option>
+                <option value="pickup">Retirar na Loja</option>
+                <option value="delivery">Enviar (Frete a Calcular)</option>
+              </select>
+            </div>
+            <div style="margin-top:12px;">
+              <label>Observações</label>
+              <textarea id="orderNotes" placeholder="Ex: Entregar com cuidado, produto frágil..." rows="3" style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);"></textarea>
+            </div>
+          </div>
+
+          <!-- BOTÕES -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <button type="button" class="btn" onclick="cancelOrderForm()">← Voltar</button>
+            <button type="submit" class="btn btn-primary">✅ Confirmar e Criar Pedido</button>
+          </div>
+        </form>
+
+        <div id="noOrderMessage" style="text-align:center; padding:40px 20px; color:var(--muted);">
+          <div style="font-size:48px; margin-bottom:12px;">📋</div>
+          <div>Use o Assistente IA para preencher automaticamente os dados do pedido</div>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script>
@@ -1235,6 +1351,20 @@
             if (data.details.invoiceUrl) {
               displayText += `  • Link: ${data.details.invoiceUrl}\n`;
             }
+
+            // Preenche o formulário de pedido automaticamente
+            fillOrderForm({
+              customer: {
+                name: data.details.customer?.name || '',
+                email: data.details.customer?.email || '',
+                phone: data.details.customer?.phone || ''
+              },
+              items: [{
+                name: data.details.product || '',
+                quantity: data.details.quantity || 1,
+                price: 0
+              }]
+            });
           }
         } else if (!data.ok && data.suggestion) {
           displayText += `⚠️ ${data.message || 'Erro ao processar'}\n\n`;
@@ -1256,6 +1386,203 @@
         setLoading(submitBtn, false);
       }
     }
+
+    /*
+      ============================================
+      FORMULÁRIO DE PEDIDO
+      ============================================
+    */
+
+    const orderForm = document.getElementById('orderForm');
+    const noOrderMessage = document.getElementById('noOrderMessage');
+
+    function showOrderForm() {
+      orderForm.style.display = 'block';
+      noOrderMessage.style.display = 'none';
+    }
+
+    function hideOrderForm() {
+      orderForm.style.display = 'none';
+      noOrderMessage.style.display = 'block';
+    }
+
+    function cancelOrderForm() {
+      if (confirm('Descartar formulário?')) {
+        hideOrderForm();
+        clearOrderForm();
+      }
+    }
+
+    function clearOrderForm() {
+      document.getElementById('orderCustomerName').value = '';
+      document.getElementById('orderCustomerEmail').value = '';
+      document.getElementById('orderCustomerPhone').value = '';
+      document.getElementById('orderCustomerCpf').value = '';
+      document.getElementById('orderStreet').value = '';
+      document.getElementById('orderNumber').value = '';
+      document.getElementById('orderComplement').value = '';
+      document.getElementById('orderNeighborhood').value = '';
+      document.getElementById('orderCity').value = '';
+      document.getElementById('orderState').value = '';
+      document.getElementById('orderZip').value = '';
+      document.getElementById('orderShipping').value = '';
+      document.getElementById('orderNotes').value = '';
+      document.getElementById('orderItems').innerHTML = '';
+      addOrderItem();
+    }
+
+    function fillOrderForm(data) {
+      // Preenche dados do cliente
+      if (data.customer?.name) {
+        document.getElementById('orderCustomerName').value = data.customer.name;
+      }
+      if (data.customer?.email) {
+        document.getElementById('orderCustomerEmail').value = data.customer.email;
+      }
+      if (data.customer?.phone) {
+        document.getElementById('orderCustomerPhone').value = data.customer.phone;
+      }
+
+      // Preenche endereço
+      if (data.customer?.address) {
+        const addr = data.customer.address;
+        if (addr.street) document.getElementById('orderStreet').value = addr.street;
+        if (addr.number) document.getElementById('orderNumber').value = addr.number;
+        if (addr.complement) document.getElementById('orderComplement').value = addr.complement;
+        if (addr.neighborhood) document.getElementById('orderNeighborhood').value = addr.neighborhood;
+        if (addr.city) document.getElementById('orderCity').value = addr.city;
+        if (addr.state) document.getElementById('orderState').value = addr.state;
+        if (addr.zip) document.getElementById('orderZip').value = addr.zip;
+      }
+
+      // Limpa itens antigos e adiciona novos
+      document.getElementById('orderItems').innerHTML = '';
+      if (Array.isArray(data.items) && data.items.length > 0) {
+        data.items.forEach((item, idx) => {
+          if (idx > 0) addOrderItem();
+          const itemDiv = document.querySelector(`[data-item-index="${idx}"]`) || document.querySelectorAll('[data-item-index]')[idx];
+          if (itemDiv) {
+            itemDiv.querySelector('.order-item-name').value = item.name || '';
+            itemDiv.querySelector('.order-item-qty').value = item.quantity || 1;
+            itemDiv.querySelector('.order-item-price').value = item.price || 0;
+          }
+        });
+      } else {
+        addOrderItem();
+      }
+
+      if (data.shipping) {
+        document.getElementById('orderShipping').value = data.shipping;
+      }
+
+      if (data.notes) {
+        document.getElementById('orderNotes').value = data.notes;
+      }
+
+      calculateOrderTotal();
+      showOrderForm();
+    }
+
+    function addOrderItem() {
+      const container = document.getElementById('orderItems');
+      const index = container.children.length;
+      const item = document.createElement('div');
+      item.style.cssText = 'background:#151820; padding:12px; border-radius:8px; display:grid; grid-template-columns:2fr 1fr 1fr 1fr auto; gap:8px; align-items:end;';
+      item.setAttribute('data-item-index', index);
+      item.innerHTML = `
+        <input type="text" placeholder="Produto" class="order-item-name" style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required>
+        <input type="number" placeholder="Qtd" class="order-item-qty" value="1" min="1" style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required>
+        <input type="number" placeholder="Preço" class="order-item-price" step="0.01" style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required>
+        <div style="color:var(--muted); font-size:12px;">Subtotal: <strong id="item-subtotal-${index}">R$ 0,00</strong></div>
+        <button type="button" class="btn btn-danger" style="width:40px; padding:8px; display:flex; align-items:center; justify-content:center;" onclick="removeOrderItem(${index})">−</button>
+      `;
+      container.appendChild(item);
+      item.querySelector('.order-item-price').addEventListener('input', calculateOrderTotal);
+      item.querySelector('.order-item-qty').addEventListener('input', calculateOrderTotal);
+    }
+
+    function removeOrderItem(index) {
+      const item = document.querySelector(`[data-item-index="${index}"]`);
+      if (item) {
+        item.remove();
+        calculateOrderTotal();
+      }
+    }
+
+    function calculateOrderTotal() {
+      let total = 0;
+      document.querySelectorAll('[data-item-index]').forEach((item, idx) => {
+        const qty = parseFloat(item.querySelector('.order-item-qty').value) || 0;
+        const price = parseFloat(item.querySelector('.order-item-price').value) || 0;
+        const subtotal = qty * price;
+        total += subtotal;
+        const subEl = document.getElementById(`item-subtotal-${idx}`);
+        if (subEl) {
+          subEl.textContent = new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          }).format(subtotal);
+        }
+      });
+      const totalEl = document.getElementById('orderTotal');
+      if (totalEl) {
+        totalEl.textContent = new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        }).format(total);
+      }
+    }
+
+    orderForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = orderForm.querySelector('button[type="submit"]');
+      setLoading(submitBtn, true);
+
+      try {
+        // Coleta dados do formulário
+        const orderData = {
+          customer: {
+            name: document.getElementById('orderCustomerName').value,
+            email: document.getElementById('orderCustomerEmail').value,
+            phone: document.getElementById('orderCustomerPhone').value,
+            cpf: document.getElementById('orderCustomerCpf').value,
+            address: {
+              street: document.getElementById('orderStreet').value,
+              number: document.getElementById('orderNumber').value,
+              complement: document.getElementById('orderComplement').value,
+              neighborhood: document.getElementById('orderNeighborhood').value,
+              city: document.getElementById('orderCity').value,
+              state: document.getElementById('orderState').value,
+              zip: document.getElementById('orderZip').value
+            }
+          },
+          items: [],
+          shipping: document.getElementById('orderShipping').value,
+          notes: document.getElementById('orderNotes').value
+        };
+
+        // Coleta itens
+        document.querySelectorAll('[data-item-index]').forEach(item => {
+          orderData.items.push({
+            name: item.querySelector('.order-item-name').value,
+            quantity: parseFloat(item.querySelector('.order-item-qty').value),
+            price: parseFloat(item.querySelector('.order-item-price').value)
+          });
+        });
+
+        // Aqui você pode enviar para a API de criar pedido
+        console.log('Pedido a criar:', orderData);
+        alert(`✅ Pedido criado com sucesso!\n\nCliente: ${orderData.customer.name}\nItens: ${orderData.items.length}\nEndereco: ${orderData.customer.address.city}, ${orderData.customer.address.state}`);
+
+        hideOrderForm();
+        clearOrderForm();
+        await loadOrders();
+      } catch (error) {
+        alert(`Erro ao criar pedido: ${error.message}`);
+      } finally {
+        setLoading(submitBtn, false);
+      }
+    });
 
     /*
       ============================================
