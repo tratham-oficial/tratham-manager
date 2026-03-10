@@ -1871,18 +1871,38 @@ Retirar na loja"
     }
 
     // Event listener para auto-completar CEP
-    document.getElementById('createOrderZip')?.addEventListener('blur', async (e) => {
-      const cepValue = e.target.value.trim();
-      if (cepValue.length >= 8) {
-        const addressData = await searchCEP(cepValue);
-        if (addressData) {
-          if (addressData.street) document.getElementById('createOrderStreet').value = addressData.street;
-          if (addressData.city) document.getElementById('createOrderCity').value = addressData.city;
-          if (addressData.state) document.getElementById('createOrderState').value = addressData.state;
-          if (addressData.neighborhood) document.getElementById('createOrderNeighborhood').value = addressData.neighborhood;
-        }
+    function setupCEPListener() {
+      const zipInput = document.getElementById('createOrderZip');
+      if (zipInput && !zipInput.hasAttribute('data-listener-added')) {
+        zipInput.setAttribute('data-listener-added', 'true');
+        zipInput.addEventListener('blur', async (e) => {
+          const cepValue = e.target.value.trim().replace(/\D/g, '');
+          if (cepValue.length === 8) {
+            const addressData = await searchCEP(cepValue);
+            if (addressData) {
+              const streetInput = document.getElementById('createOrderStreet');
+              const cityInput = document.getElementById('createOrderCity');
+              const stateInput = document.getElementById('createOrderState');
+              const neighborhoodInput = document.getElementById('createOrderNeighborhood');
+
+              if (streetInput && addressData.street) streetInput.value = addressData.street;
+              if (cityInput && addressData.city) cityInput.value = addressData.city;
+              if (stateInput && addressData.state) stateInput.value = addressData.state.toUpperCase();
+              if (neighborhoodInput && addressData.neighborhood) neighborhoodInput.value = addressData.neighborhood;
+            }
+          }
+        });
       }
-    });
+    }
+
+    // Executa quando o DOM estiver pronto
+    document.addEventListener('DOMContentLoaded', setupCEPListener);
+    // Também tenta executar imediatamente em caso de DOM já estar pronto
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupCEPListener);
+    } else {
+      setupCEPListener();
+    }
 
     // Função para encontrar produto por alias
     function findProductByAlias(query) {
@@ -2049,33 +2069,40 @@ Retirar na loja"
 
     // Atualiza o total do pedido (subtotal, desconto e total)
     function updateOrderTotal() {
-      let subtotal = 0;
+      try {
+        let subtotal = 0;
 
-      // Calcula o subtotal de todos os produtos
-      document.querySelectorAll('[data-create-item-index]').forEach(item => {
-        const priceInput = item.querySelector('.create-order-item-price');
-        const qtyInput = item.querySelector('.create-order-item-qty');
+        // Calcula o subtotal de todos os produtos
+        const itemsContainer = document.getElementById('createOrderItems');
+        if (itemsContainer) {
+          itemsContainer.querySelectorAll('[data-create-item-index]').forEach(item => {
+            const priceInput = item.querySelector('.create-order-item-price');
+            const qtyInput = item.querySelector('.create-order-item-qty');
 
-        if (priceInput && qtyInput) {
-          const price = parseFloat(priceInput.value) || 0;
-          const qty = parseFloat(qtyInput.value) || 1;
-          subtotal += price * qty;
+            if (priceInput && qtyInput && priceInput.value && qtyInput.value) {
+              const price = parseFloat(priceInput.value) || 0;
+              const qty = parseFloat(qtyInput.value) || 1;
+              subtotal += price * qty;
+            }
+          });
         }
-      });
 
-      // Pega o desconto
-      const discountInput = document.getElementById('createOrderDiscount');
-      const discount = parseFloat(discountInput?.value) || 0;
+        // Pega o desconto
+        const discountInput = document.getElementById('createOrderDiscount');
+        const discount = discountInput ? parseFloat(discountInput.value) || 0 : 0;
 
-      // Calcula o total
-      const total = Math.max(0, subtotal - discount);
+        // Calcula o total
+        const total = Math.max(0, subtotal - discount);
 
-      // Atualiza os campos
-      const subtotalInput = document.getElementById('createOrderSubtotal');
-      const totalSpan = document.getElementById('createOrderTotal');
+        // Atualiza os campos
+        const subtotalInput = document.getElementById('createOrderSubtotal');
+        const totalSpan = document.getElementById('createOrderTotal');
 
-      if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
-      if (totalSpan) totalSpan.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
+        if (totalSpan) totalSpan.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+      } catch (error) {
+        console.error('Erro ao atualizar total:', error);
+      }
     }
 
     function removeCreateOrderItem(index) {
