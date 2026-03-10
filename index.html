@@ -690,6 +690,27 @@ Retirar na loja"
               <button type="button" class="btn" style="width:100%; background:#1b3a1b; border-color:#22c55e40;" onclick="addCreateOrderItem()">+ Adicionar Produto</button>
             </div>
 
+            <!-- RESUMO DO PEDIDO -->
+            <div style="background:#1a3a2a; padding:16px; border-radius:12px; border-left:4px solid #10b981;">
+              <h3 style="margin-top:0; color:#6ee7b7;">💰 Resumo do Pedido</h3>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                <div>
+                  <label>Total dos Produtos</label>
+                  <input type="number" id="createOrderSubtotal" placeholder="0.00" step="0.01" readonly style="width:100%; padding:10px; border-radius:8px; background:#151820; color:#10b981; border:1px solid #10b98140; font-weight:bold;">
+                </div>
+                <div>
+                  <label>Desconto (R$)</label>
+                  <input type="number" id="createOrderDiscount" placeholder="0.00" step="0.01" value="0" style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);" onchange="updateOrderTotal()" oninput="updateOrderTotal()">
+                </div>
+              </div>
+              <div style="padding:12px; background:#0f2e1d; border-radius:8px; border:2px solid #10b981;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:14px; color:#a1a1aa;">Valor Total do Pedido:</span>
+                  <span style="font-size:24px; font-weight:bold; color:#10b981;" id="createOrderTotal">R$ 0,00</span>
+                </div>
+              </div>
+            </div>
+
             <!-- ENTREGA -->
             <div style="background:#1a2a3a; padding:16px; border-radius:12px; border-left:4px solid #f59e0b;">
               <h3 style="margin-top:0; color:#fbbf24;">🚚 Entrega</h3>
@@ -1952,10 +1973,12 @@ Retirar na loja"
         </div>
 
         <input type="number" placeholder="Qtd" class="create-order-item-qty" value="1" min="1"
-               style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required>
+               style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required
+               onchange="updateOrderTotal()" oninput="updateOrderTotal()">
 
         <input type="number" placeholder="Preço" class="create-order-item-price" step="0.01"
-               style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required>
+               style="padding:8px; border-radius:6px; background:#0b0b0c; color:var(--text); border:1px solid var(--border);" required
+               onchange="updateOrderTotal()" oninput="updateOrderTotal()">
 
         <button type="button" class="btn btn-danger" style="width:40px; padding:8px; display:flex; align-items:center; justify-content:center;" onclick="removeCreateOrderItem(${index})">−</button>
       `;
@@ -2019,11 +2042,46 @@ Retirar na loja"
       } else if (priceInput) {
         priceInput.value = '';
       }
+
+      // Atualiza o total do pedido
+      updateOrderTotal();
+    }
+
+    // Atualiza o total do pedido (subtotal, desconto e total)
+    function updateOrderTotal() {
+      let subtotal = 0;
+
+      // Calcula o subtotal de todos os produtos
+      document.querySelectorAll('[data-create-item-index]').forEach(item => {
+        const priceInput = item.querySelector('.create-order-item-price');
+        const qtyInput = item.querySelector('.create-order-item-qty');
+
+        if (priceInput && qtyInput) {
+          const price = parseFloat(priceInput.value) || 0;
+          const qty = parseFloat(qtyInput.value) || 1;
+          subtotal += price * qty;
+        }
+      });
+
+      // Pega o desconto
+      const discountInput = document.getElementById('createOrderDiscount');
+      const discount = parseFloat(discountInput?.value) || 0;
+
+      // Calcula o total
+      const total = Math.max(0, subtotal - discount);
+
+      // Atualiza os campos
+      const subtotalInput = document.getElementById('createOrderSubtotal');
+      const totalSpan = document.getElementById('createOrderTotal');
+
+      if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
+      if (totalSpan) totalSpan.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
     }
 
     function removeCreateOrderItem(index) {
       const item = document.querySelector(`[data-create-item-index="${index}"]`);
       if (item) item.remove();
+      updateOrderTotal();
     }
 
     function clearCreateOrderForm() {
@@ -2035,6 +2093,8 @@ Retirar na loja"
       document.getElementById('createOrderNumber').value = '';
       document.getElementById('createOrderComplement').value = '';
       document.getElementById('createOrderNeighborhood').value = '';
+      document.getElementById('createOrderDiscount').value = '0';
+      updateOrderTotal();
       document.getElementById('createOrderCity').value = '';
       document.getElementById('createOrderState').value = '';
       document.getElementById('createOrderZip').value = '';
