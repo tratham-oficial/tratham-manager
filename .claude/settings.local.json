@@ -6,7 +6,10 @@
       "Bash(git commit --amend --no-edit)",
       "Bash(git push origin main --force-with-lease)",
       "Bash(npm install)",
-      "Bash(git add -A)"
+      "Bash(git add -A)",
+      "Bash(git commit -m \"feat: criar assistente IA poderoso para criar pedidos automaticamente:*)",
+      "Bash(git push origin main)",
+      "Bash(git commit -m \"chore: atualizar configurações de permissões locais:*)"
     ]
   }
 }
