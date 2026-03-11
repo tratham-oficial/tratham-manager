@@ -353,6 +353,18 @@
       pointer-events: none;
     }
 
+    .input-success {
+      border-color: #10b981 !important;
+      background-color: rgba(16, 185, 129, 0.05) !important;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+    }
+
+    .input-error {
+      border-color: #ef4444 !important;
+      background-color: rgba(239, 68, 68, 0.05) !important;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+    }
+
     @media (max-width: 980px) {
       .cards {
         grid-template-columns: repeat(2, minmax(180px, 1fr));
@@ -2039,6 +2051,86 @@ Frete Grátis ou valor"
       }
     }
 
+    function validateFormVisually() {
+      // Remove classes de validação anterior
+      const form = document.getElementById('createOrderForm');
+      form.querySelectorAll('input, select, textarea').forEach(field => {
+        field.classList.remove('input-success', 'input-error');
+      });
+
+      let isValid = true;
+      const fieldIds = [
+        'createOrderCustomerName',
+        'createOrderCustomerPhone',
+        'createOrderZip',
+        'createOrderStreet',
+        'createOrderNumber',
+        'createOrderCity',
+        'createOrderState',
+        'createOrderShipping'
+      ];
+
+      // Valida campos obrigatórios
+      fieldIds.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+
+        let isFieldValid = false;
+
+        if (fieldId === 'createOrderZip') {
+          // CEP: validar formato xxxxx-xxx
+          const zipValue = field.value.trim();
+          isFieldValid = zipValue.length === 8 && /^\d{5}-\d{3}$/.test(zipValue);
+        } else if (fieldId === 'createOrderState') {
+          // Estado: exatamente 2 caracteres
+          isFieldValid = field.value.trim().length === 2;
+        } else {
+          // Outros campos: apenas verificar se não estão vazios
+          isFieldValid = field.value.trim().length > 0;
+        }
+
+        if (isFieldValid) {
+          field.classList.add('input-success');
+        } else {
+          field.classList.add('input-error');
+          isValid = false;
+        }
+      });
+
+      // Valida produtos (pelo menos 1 com todos os campos preenchidos)
+      const productItems = document.querySelectorAll('[data-create-item-index]');
+      let hasValidProduct = false;
+
+      if (productItems.length > 0) {
+        productItems.forEach(item => {
+          const productSelect = item.querySelector('.create-order-item-product');
+          const variantSelect = item.querySelector('.create-order-item-variant');
+          const qtyInput = item.querySelector('.create-order-item-qty');
+          const priceInput = item.querySelector('.create-order-item-price');
+
+          const productValid = productSelect.value.trim() !== '';
+          const variantValid = variantSelect.value.trim() !== '';
+          const qtyValid = parseFloat(qtyInput.value) > 0;
+          const priceValid = parseFloat(priceInput.value) >= 0;
+
+          if (productValid) productSelect.classList.add('input-success'); else productSelect.classList.add('input-error');
+          if (variantValid) variantSelect.classList.add('input-success'); else variantSelect.classList.add('input-error');
+          if (qtyValid) qtyInput.classList.add('input-success'); else qtyInput.classList.add('input-error');
+          if (priceValid) priceInput.classList.add('input-success'); else priceInput.classList.add('input-error');
+
+          if (productValid && variantValid && qtyValid && priceValid) {
+            hasValidProduct = true;
+          } else {
+            isValid = false;
+          }
+        });
+      } else {
+        isValid = false;
+      }
+
+      return isValid;
+    }
+
     function addCreateOrderItem() {
       const container = document.getElementById('createOrderItems');
       const index = container.children.length;
@@ -2498,6 +2590,13 @@ Frete Grátis ou valor"
     // Submit do formulário de criar pedido
     document.getElementById('createOrderForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      // Valida formulário visualmente
+      if (!validateFormVisually()) {
+        alert('❌ Por favor, preencha todos os campos obrigatórios corretamente');
+        return;
+      }
+
       const submitBtn = e.target.querySelector('button[type="submit"]');
       setLoading(submitBtn, true);
 
