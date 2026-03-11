@@ -354,13 +354,13 @@
     }
 
     .input-success {
-      border-color: #10b981 !important;
-      background-color: rgba(16, 185, 129, 0.05) !important;
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+      border-color: var(--success) !important;
+      background-color: rgba(34, 197, 94, 0.05) !important;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1) !important;
     }
 
     .input-error {
-      border-color: #ef4444 !important;
+      border-color: var(--danger) !important;
       background-color: rgba(239, 68, 68, 0.05) !important;
       box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
     }
@@ -2051,82 +2051,83 @@ Frete Grátis ou valor"
       }
     }
 
+    // ===== CONSTANTES DE VALIDAÇÃO =====
+    const VALIDATION = {
+      CLASSES: { SUCCESS: 'input-success', ERROR: 'input-error' },
+      PATTERNS: { CEP: /^\d{5}-\d{3}$/, EMAIL: /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/ },
+      LENGTHS: { CEP: 8, STATE: 2 },
+      REQUIRED_FIELDS: {
+        NAME: 'createOrderCustomerName',
+        PHONE: 'createOrderCustomerPhone',
+        ZIP: 'createOrderZip',
+        STREET: 'createOrderStreet',
+        NUMBER: 'createOrderNumber',
+        CITY: 'createOrderCity',
+        STATE: 'createOrderState',
+        SHIPPING: 'createOrderShipping'
+      },
+      PRODUCT_FIELDS: { PRODUCT: '.create-order-item-product', VARIANT: '.create-order-item-variant', QTY: '.create-order-item-qty', PRICE: '.create-order-item-price' }
+    };
+
+    function setFieldValidationClass(field, isValid) {
+      field.classList.remove(VALIDATION.CLASSES.SUCCESS, VALIDATION.CLASSES.ERROR);
+      field.classList.add(isValid ? VALIDATION.CLASSES.SUCCESS : VALIDATION.CLASSES.ERROR);
+    }
+
+    function validateFieldValue(value, fieldId) {
+      const trimmed = value.trim();
+      if (!trimmed) return false;
+      if (fieldId === VALIDATION.REQUIRED_FIELDS.ZIP) return VALIDATION.PATTERNS.CEP.test(trimmed);
+      if (fieldId === VALIDATION.REQUIRED_FIELDS.STATE) return trimmed.length === VALIDATION.LENGTHS.STATE;
+      return true;
+    }
+
+    function getCreateOrderItems() {
+      return document.querySelectorAll('[data-create-item-index]');
+    }
+
+    function getProductItemFields(itemElement) {
+      return {
+        product: itemElement.querySelector(VALIDATION.PRODUCT_FIELDS.PRODUCT),
+        variant: itemElement.querySelector(VALIDATION.PRODUCT_FIELDS.VARIANT),
+        qty: itemElement.querySelector(VALIDATION.PRODUCT_FIELDS.QTY),
+        price: itemElement.querySelector(VALIDATION.PRODUCT_FIELDS.PRICE)
+      };
+    }
+
     function validateFormVisually() {
-      // Remove classes de validação anterior
-      const form = document.getElementById('createOrderForm');
-      form.querySelectorAll('input, select, textarea').forEach(field => {
-        field.classList.remove('input-success', 'input-error');
-      });
-
       let isValid = true;
-      const fieldIds = [
-        'createOrderCustomerName',
-        'createOrderCustomerPhone',
-        'createOrderZip',
-        'createOrderStreet',
-        'createOrderNumber',
-        'createOrderCity',
-        'createOrderState',
-        'createOrderShipping'
-      ];
+      const form = document.getElementById('createOrderForm');
 
-      // Valida campos obrigatórios
-      fieldIds.forEach(fieldId => {
+      // Valida campos obrigatórios usando constantes
+      Object.values(VALIDATION.REQUIRED_FIELDS).forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (!field) return;
+        const isFieldValid = validateFieldValue(field.value, fieldId);
+        setFieldValidationClass(field, isFieldValid);
+        if (!isFieldValid) isValid = false;
+      });
 
-        let isFieldValid = false;
+      // Valida produtos - deve haver pelo menos 1 produto completo
+      const productItems = getCreateOrderItems();
+      if (productItems.length === 0) return false;
 
-        if (fieldId === 'createOrderZip') {
-          // CEP: validar formato xxxxx-xxx
-          const zipValue = field.value.trim();
-          isFieldValid = zipValue.length === 8 && /^\d{5}-\d{3}$/.test(zipValue);
-        } else if (fieldId === 'createOrderState') {
-          // Estado: exatamente 2 caracteres
-          isFieldValid = field.value.trim().length === 2;
-        } else {
-          // Outros campos: apenas verificar se não estão vazios
-          isFieldValid = field.value.trim().length > 0;
-        }
+      productItems.forEach(item => {
+        const fields = getProductItemFields(item);
+        const productValid = fields.product.value.trim() !== '';
+        const variantValid = fields.variant.value.trim() !== '';
+        const qtyValid = parseFloat(fields.qty.value) > 0;
+        const priceValid = parseFloat(fields.price.value) >= 0;
 
-        if (isFieldValid) {
-          field.classList.add('input-success');
-        } else {
-          field.classList.add('input-error');
+        setFieldValidationClass(fields.product, productValid);
+        setFieldValidationClass(fields.variant, variantValid);
+        setFieldValidationClass(fields.qty, qtyValid);
+        setFieldValidationClass(fields.price, priceValid);
+
+        if (!(productValid && variantValid && qtyValid && priceValid)) {
           isValid = false;
         }
       });
-
-      // Valida produtos (pelo menos 1 com todos os campos preenchidos)
-      const productItems = document.querySelectorAll('[data-create-item-index]');
-      let hasValidProduct = false;
-
-      if (productItems.length > 0) {
-        productItems.forEach(item => {
-          const productSelect = item.querySelector('.create-order-item-product');
-          const variantSelect = item.querySelector('.create-order-item-variant');
-          const qtyInput = item.querySelector('.create-order-item-qty');
-          const priceInput = item.querySelector('.create-order-item-price');
-
-          const productValid = productSelect.value.trim() !== '';
-          const variantValid = variantSelect.value.trim() !== '';
-          const qtyValid = parseFloat(qtyInput.value) > 0;
-          const priceValid = parseFloat(priceInput.value) >= 0;
-
-          if (productValid) productSelect.classList.add('input-success'); else productSelect.classList.add('input-error');
-          if (variantValid) variantSelect.classList.add('input-success'); else variantSelect.classList.add('input-error');
-          if (qtyValid) qtyInput.classList.add('input-success'); else qtyInput.classList.add('input-error');
-          if (priceValid) priceInput.classList.add('input-success'); else priceInput.classList.add('input-error');
-
-          if (productValid && variantValid && qtyValid && priceValid) {
-            hasValidProduct = true;
-          } else {
-            isValid = false;
-          }
-        });
-      } else {
-        isValid = false;
-      }
 
       return isValid;
     }
