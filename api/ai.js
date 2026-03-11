@@ -420,6 +420,15 @@ async function processCommand(prompt) {
 
 async function listAllProducts() {
   try {
+    // Verifica se as credenciais estão configuradas
+    try {
+      getEnv();
+    } catch (e) {
+      // Se não tiver credenciais, usa dados de teste
+      console.warn('Usando dados de teste - configure SHOPIFY_SHOP e SHOPIFY_ADMIN_TOKEN');
+      return getMockProducts();
+    }
+
     const { data } = await shopifyFetch(`/graphql.json`, {
       method: 'POST',
       body: JSON.stringify({
@@ -450,7 +459,7 @@ async function listAllProducts() {
       })
     });
 
-    if (data.data?.products?.edges) {
+    if (data.data?.products?.edges && data.data.products.edges.length > 0) {
       return data.data.products.edges.map(edge => {
         const product = edge.node;
         const variants = product.variants?.edges?.map(v => ({
@@ -465,41 +474,48 @@ async function listAllProducts() {
         };
       });
     }
-    return [];
+
+    // Se Shopify retornou vazio, usa dados de teste
+    console.warn('Nenhum produto encontrado na Shopify, usando dados de teste');
+    return getMockProducts();
   } catch (error) {
-    // Se não tiver credenciais da Shopify, retorna dados de teste
-    console.warn('Usando dados de teste - configure SHOPIFY_SHOP e SHOPIFY_ADMIN_TOKEN');
-    return [
-      {
-        id: 'prod_1',
-        title: 'Camiseta Suedine',
-        handle: 'camiseta-suedine',
-        variants: [
-          { id: 'var_1', title: 'M - Habanão', sku: 'CS-M-HAB', price: '89.90', productId: 'prod_1', productTitle: 'Camiseta Suedine' },
-          { id: 'var_2', title: 'G - Azul', sku: 'CS-G-AZU', price: '89.90', productId: 'prod_1', productTitle: 'Camiseta Suedine' },
-          { id: 'var_3', title: 'P - Vermelho', sku: 'CS-P-VER', price: '89.90', productId: 'prod_1', productTitle: 'Camiseta Suedine' }
-        ]
-      },
-      {
-        id: 'prod_2',
-        title: 'Camiseta Texturizada',
-        handle: 'camiseta-texturizada',
-        variants: [
-          { id: 'var_4', title: 'M - Habano', sku: 'CT-M-HAB', price: '75.90', productId: 'prod_2', productTitle: 'Camiseta Texturizada' },
-          { id: 'var_5', title: 'G - Cinza', sku: 'CT-G-CIN', price: '75.90', productId: 'prod_2', productTitle: 'Camiseta Texturizada' }
-        ]
-      },
-      {
-        id: 'prod_3',
-        title: 'Suéter Ambition',
-        handle: 'sueter-ambition',
-        variants: [
-          { id: 'var_6', title: 'P - Azul', sku: 'SA-P-AZU', price: '129.90', productId: 'prod_3', productTitle: 'Suéter Ambition' },
-          { id: 'var_7', title: 'M - Azul', sku: 'SA-M-AZU', price: '129.90', productId: 'prod_3', productTitle: 'Suéter Ambition' }
-        ]
-      }
-    ];
+    // Se houver erro na busca, retorna dados de teste
+    console.warn('Erro ao buscar produtos:', error.message, '- usando dados de teste');
+    return getMockProducts();
   }
+}
+
+function getMockProducts() {
+  return [
+    {
+      id: 'prod_1',
+      title: 'Camiseta Suedine',
+      handle: 'camiseta-suedine',
+      variants: [
+        { id: 'var_1', title: 'M - Habanão', sku: 'CS-M-HAB', price: '89.90', productId: 'prod_1', productTitle: 'Camiseta Suedine' },
+        { id: 'var_2', title: 'G - Azul', sku: 'CS-G-AZU', price: '89.90', productId: 'prod_1', productTitle: 'Camiseta Suedine' },
+        { id: 'var_3', title: 'P - Vermelho', sku: 'CS-P-VER', price: '89.90', productId: 'prod_1', productTitle: 'Camiseta Suedine' }
+      ]
+    },
+    {
+      id: 'prod_2',
+      title: 'Camiseta Texturizada',
+      handle: 'camiseta-texturizada',
+      variants: [
+        { id: 'var_4', title: 'M - Habano', sku: 'CT-M-HAB', price: '75.90', productId: 'prod_2', productTitle: 'Camiseta Texturizada' },
+        { id: 'var_5', title: 'G - Cinza', sku: 'CT-G-CIN', price: '75.90', productId: 'prod_2', productTitle: 'Camiseta Texturizada' }
+      ]
+    },
+    {
+      id: 'prod_3',
+      title: 'Suéter Ambition',
+      handle: 'sueter-ambition',
+      variants: [
+        { id: 'var_6', title: 'P - Azul', sku: 'SA-P-AZU', price: '129.90', productId: 'prod_3', productTitle: 'Suéter Ambition' },
+        { id: 'var_7', title: 'M - Azul', sku: 'SA-M-AZU', price: '129.90', productId: 'prod_3', productTitle: 'Suéter Ambition' }
+      ]
+    }
+  ];
 }
 
 async function listShippingMethods() {
