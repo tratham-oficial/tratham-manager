@@ -650,7 +650,12 @@ Retirar na loja"
             <!-- ENDEREÇO -->
             <div style="background:#1a2a3a; padding:16px; border-radius:12px; border-left:4px solid #3b82f6;">
               <h3 style="margin-top:0; color:#60a5fa;">📍 Endereço de Entrega</h3>
+              <p style="color:#8095a8; font-size:13px; margin:0 0 12px 0;">💡 Preencha o CEP primeiro para auto-completar os dados</p>
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div style="grid-column:1/-1;">
+                  <label>CEP * <span style="color:#60a5fa;">(preencha primeiro)</span></label>
+                  <input type="text" id="createOrderZip" placeholder="00000-000" required style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
+                </div>
                 <div style="grid-column:1/-1;">
                   <label>Rua/Avenida *</label>
                   <input type="text" id="createOrderStreet" placeholder="Rua/Avenida" required style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
@@ -674,10 +679,6 @@ Retirar na loja"
                 <div>
                   <label>Estado *</label>
                   <input type="text" id="createOrderState" placeholder="UF" maxlength="2" required style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
-                </div>
-                <div>
-                  <label>CEP *</label>
-                  <input type="text" id="createOrderZip" placeholder="CEP" required style="width:100%; padding:10px; border-radius:8px; background:#151820; color:var(--text); border:1px solid var(--border);">
                 </div>
               </div>
             </div>
@@ -1875,21 +1876,65 @@ Retirar na loja"
       const zipInput = document.getElementById('createOrderZip');
       if (zipInput && !zipInput.hasAttribute('data-listener-added')) {
         zipInput.setAttribute('data-listener-added', 'true');
+
+        zipInput.addEventListener('input', (e) => {
+          // Formata o CEP enquanto o usuário digita (00000-000)
+          let value = e.target.value.replace(/\D/g, '');
+          if (value.length > 5) {
+            value = value.slice(0, 5) + '-' + value.slice(5, 8);
+          }
+          e.target.value = value;
+        });
+
         zipInput.addEventListener('blur', async (e) => {
           const cepValue = e.target.value.trim().replace(/\D/g, '');
-          if (cepValue.length === 8) {
-            const addressData = await searchCEP(cepValue);
-            if (addressData) {
-              const streetInput = document.getElementById('createOrderStreet');
-              const cityInput = document.getElementById('createOrderCity');
-              const stateInput = document.getElementById('createOrderState');
-              const neighborhoodInput = document.getElementById('createOrderNeighborhood');
 
-              if (streetInput && addressData.street) streetInput.value = addressData.street;
-              if (cityInput && addressData.city) cityInput.value = addressData.city;
-              if (stateInput && addressData.state) stateInput.value = addressData.state.toUpperCase();
-              if (neighborhoodInput && addressData.neighborhood) neighborhoodInput.value = addressData.neighborhood;
+          // Validar formato
+          if (cepValue.length !== 8) {
+            // Limpar campos se CEP inválido
+            document.getElementById('createOrderStreet').value = '';
+            document.getElementById('createOrderNumber').value = '';
+            document.getElementById('createOrderComplement').value = '';
+            document.getElementById('createOrderNeighborhood').value = '';
+            document.getElementById('createOrderCity').value = '';
+            document.getElementById('createOrderState').value = '';
+
+            if (cepValue.length > 0) {
+              alert('⚠️ CEP inválido. Formato esperado: 00000-000 (8 dígitos)');
             }
+            return;
+          }
+
+          // Consultar CEP
+          const addressData = await searchCEP(cepValue);
+
+          if (!addressData) {
+            // Limpar campos se CEP não encontrado
+            document.getElementById('createOrderStreet').value = '';
+            document.getElementById('createOrderNumber').value = '';
+            document.getElementById('createOrderComplement').value = '';
+            document.getElementById('createOrderNeighborhood').value = '';
+            document.getElementById('createOrderCity').value = '';
+            document.getElementById('createOrderState').value = '';
+            alert('❌ CEP não encontrado na base de dados');
+            return;
+          }
+
+          // Preencher campos com os dados da API
+          const streetInput = document.getElementById('createOrderStreet');
+          const cityInput = document.getElementById('createOrderCity');
+          const stateInput = document.getElementById('createOrderState');
+          const neighborhoodInput = document.getElementById('createOrderNeighborhood');
+          const numberInput = document.getElementById('createOrderNumber');
+
+          if (streetInput) streetInput.value = addressData.street || '';
+          if (cityInput) cityInput.value = addressData.city || '';
+          if (stateInput) stateInput.value = (addressData.state || '').toUpperCase();
+          if (neighborhoodInput) neighborhoodInput.value = addressData.neighborhood || '';
+
+          // Focar no campo de número para o usuário preencher
+          if (numberInput) {
+            numberInput.focus();
           }
         });
       }
