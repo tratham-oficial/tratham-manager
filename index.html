@@ -1915,14 +1915,7 @@ Retirar na loja"
 
           // Validar formato
           if (cepValue.length !== 8) {
-            // Limpar campos se CEP inválido
-            document.getElementById('createOrderStreet').value = '';
-            document.getElementById('createOrderNumber').value = '';
-            document.getElementById('createOrderComplement').value = '';
-            document.getElementById('createOrderNeighborhood').value = '';
-            document.getElementById('createOrderCity').value = '';
-            document.getElementById('createOrderState').value = '';
-
+            // NÃO limpar campos se CEP inválido - usuário já preencheu dados do WhatsApp
             if (cepValue.length > 0) {
               alert('⚠️ CEP inválido. Formato esperado: 00000-000 (8 dígitos)');
             }
@@ -1933,28 +1926,24 @@ Retirar na loja"
           const addressData = await searchCEP(cepValue);
 
           if (!addressData) {
-            // Limpar campos se CEP não encontrado
-            document.getElementById('createOrderStreet').value = '';
-            document.getElementById('createOrderNumber').value = '';
-            document.getElementById('createOrderComplement').value = '';
-            document.getElementById('createOrderNeighborhood').value = '';
-            document.getElementById('createOrderCity').value = '';
-            document.getElementById('createOrderState').value = '';
-            alert('❌ CEP não encontrado na base de dados');
+            // NÃO limpar campos se CEP não encontrado - usuário pode ter dados do WhatsApp
+            alert('❌ CEP não encontrado. Preencha manualmente a rua, cidade e estado.');
+            document.getElementById('createOrderNumber').focus();
             return;
           }
 
-          // Preencher campos com os dados da API
+          // Preencher campos com os dados da API - MAS NÃO SOBRESCREVER dados já preenchidos
           const streetInput = document.getElementById('createOrderStreet');
           const cityInput = document.getElementById('createOrderCity');
           const stateInput = document.getElementById('createOrderState');
           const neighborhoodInput = document.getElementById('createOrderNeighborhood');
           const numberInput = document.getElementById('createOrderNumber');
 
-          if (streetInput) streetInput.value = addressData.street || '';
-          if (cityInput) cityInput.value = addressData.city || '';
-          if (stateInput) stateInput.value = (addressData.state || '').toUpperCase();
-          if (neighborhoodInput) neighborhoodInput.value = addressData.neighborhood || '';
+          // Preencher APENAS campos vazios - não sobrescrever dados do WhatsApp
+          if (streetInput && !streetInput.value) streetInput.value = addressData.street || '';
+          if (cityInput && !cityInput.value) cityInput.value = addressData.city || '';
+          if (stateInput && !stateInput.value) stateInput.value = (addressData.state || '').toUpperCase();
+          if (neighborhoodInput && !neighborhoodInput.value) neighborhoodInput.value = addressData.neighborhood || '';
 
           // Focar no campo de número para o usuário preencher
           if (numberInput) {
@@ -2319,6 +2308,17 @@ Retirar na loja"
           const zipMatch = line.match(/(\d{5})[-]?(\d{3})/);
           if (zipMatch) {
             zip = zipMatch[1] + '-' + zipMatch[2];
+          }
+
+          // Tenta extrair cidade se estiver na mesma linha após o CEP ou bairro
+          // Formato: Rua X, 123 - Bairro, Cidade ou Rua X, 123 - Bairro, Cidade RS
+          const cityMatch = line.match(/[-–]\s+([^,]+?)\s*(?:,\s*[A-Z]{2})?$/);
+          if (cityMatch && !city) {
+            const potentialCity = cityMatch[1].trim();
+            // Verifica se não é o mesmo que o bairro
+            if (potentialCity.toLowerCase() !== neighborhood.toLowerCase()) {
+              city = potentialCity;
+            }
           }
         }
 
