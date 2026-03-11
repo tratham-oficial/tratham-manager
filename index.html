@@ -2141,21 +2141,22 @@ Retirar na loja"
         await loadShopifyData();
       }
 
-      // Mostra indicador de carregamento
-      alert('⏳ Analisando dados e buscando produtos na Shopify...');
-
       // Extrai informações do texto
       const lines = whatsappText.split('\n').map(l => l.trim()).filter(l => l);
 
       // Análise inteligente com regex
       let name = '';
+      let email = '';
       let cpf = '';
       let phone = '';
       let street = '';
       let number = '';
+      let neighborhood = '';
+      let complement = '';
       let city = '';
       let state = '';
       let zip = '';
+      let discount = 0;
       let products = [];
       let shipping = 'delivery';
       let notes = '';
@@ -2164,13 +2165,19 @@ Retirar na loja"
         const lower = line.toLowerCase();
 
         // Nome (primeira linha geralmente é o nome)
-        if (idx === 0 && !line.includes('cpf') && !line.includes('rua')) {
+        if (idx === 0 && !line.includes('cpf') && !line.includes('rua') && !line.includes('@')) {
           name = line;
+        }
+
+        // Email (padrão: algo@algo.algo)
+        if (lower.includes('@')) {
+          const emailMatch = line.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+          if (emailMatch) email = emailMatch[1];
         }
 
         // CPF
         if (lower.includes('cpf')) {
-          cpf = line.replace(/cpf\s*/i, '').trim();
+          cpf = line.replace(/cpf\s*/i, '').replace(/[^\d]/g, '').trim();
         }
 
         // Telefone
@@ -2178,35 +2185,63 @@ Retirar na loja"
           phone = line.replace(/telefone\s*/i, '').trim();
         }
 
+        // Desconto
+        if (lower.includes('desconto') || lower.includes('valor com desconto')) {
+          const discountMatch = line.match(/(\d+[.,]\d{2})/);
+          if (discountMatch) {
+            discount = parseFloat(discountMatch[1].replace(',', '.'));
+          }
+        }
+
         // Endereço (contém "rua", "av", "avenida")
         if (lower.includes('rua ') || lower.includes('avenida') || lower.includes('av ')) {
-          const parts = line.split(',');
-          street = parts[0].replace(/rua\s+|avenida\s+|av\s+/i, '').trim();
-
           // Extrai número (primeiro número da linha)
-          const numMatch = line.match(/(\d+)/);
+          const numMatch = line.match(/\b(\d+)\b/);
           if (numMatch) number = numMatch[1];
 
-          // Extrai cidade, estado, CEP
-          if (parts.length > 1) {
-            parts.forEach((part, i) => {
-              const p = part.trim();
-              if (p.match(/^\w{2}$/)) state = p.toUpperCase();
-              if (p.match(/\d{5}-\d{3}/)) zip = p;
-              if (!p.match(/^\w{2}$/) && !p.match(/\d{5}-\d{3}/) && i > 0) {
-                city = p;
-              }
-            });
+          // Extrai rua (antes da primeira vírgula ou traço)
+          street = line.replace(/rua\s+|avenida\s+|av\s+/i, '').split(/[,-]/)[0].trim();
+
+          // Extrai bairro (texto após " - " até fim da linha)
+          const bairroMatch = line.match(/\s[-–]\s+([^,\n]+?)$/);
+          if (bairroMatch) {
+            neighborhood = bairroMatch[1].trim();
+          }
+
+          // Extrai CEP (flexível: 12345-678 ou 12345678 ou 12345-678(cep))
+          const zipMatch = line.match(/(\d{5})[-]?(\d{3})/);
+          if (zipMatch) {
+            zip = zipMatch[1] + '-' + zipMatch[2];
+          }
+        }
+
+        // Complemento em linha separada
+        if (lower.includes('complemento')) {
+          const complementMatch = line.match(/complemento\s*[:=]?\s*(.+?)$/i);
+          if (complementMatch) {
+            complement = complementMatch[1].trim();
           }
         }
 
         // Cidade, Estado, CEP (se em linha separada)
-        if (line.match(/\d{5}-\d{3}/)) {
-          zip = line.match(/\d{5}-\d{3}/)[0];
+        if (line.match(/\d{5}[-]?\d{3}/)) {
+          const zipMatch = line.match(/(\d{5})[-]?(\d{3})/);
+          if (zipMatch) {
+            zip = zipMatch[1] + '-' + zipMatch[2];
+          }
         }
-        if (line.match(/,?\s*[A-Z]{2}\s*,?/)) {
-          const m = line.match(/([A-Z]{2})/);
+        // Estado: 2 letras maiúsculas sozinhas em uma linha ou após vírgula
+        if (!state && line.trim().match(/^[A-Z]{2}$/)) {
+          state = line.trim();
+        } else if (!state && line.match(/,\s*([A-Z]{2})\s*$/)) {
+          const m = line.match(/,\s*([A-Z]{2})\s*$/);
           if (m) state = m[1];
+        }
+
+        // Frete gratis
+        if (lower.includes('frete gratis')) {
+          shipping = 'delivery';
+          notes += (notes ? '\n' : '') + 'Frete grátis';
         }
 
         // Retirar na loja
@@ -2260,13 +2295,17 @@ Retirar na loja"
 
       // Preenche o formulário
       document.getElementById('createOrderCustomerName').value = name;
+      document.getElementById('createOrderCustomerEmail').value = email;
       document.getElementById('createOrderCustomerCpf').value = cpf;
       document.getElementById('createOrderCustomerPhone').value = phone;
       document.getElementById('createOrderStreet').value = street;
       document.getElementById('createOrderNumber').value = number;
+      document.getElementById('createOrderComplement').value = complement;
+      document.getElementById('createOrderNeighborhood').value = neighborhood;
       document.getElementById('createOrderCity').value = city;
       document.getElementById('createOrderState').value = state;
       document.getElementById('createOrderZip').value = zip;
+      document.getElementById('createOrderDiscount').value = discount.toFixed(2);
       document.getElementById('createOrderShipping').value = shipping;
       document.getElementById('createOrderNotes').value = notes;
 
@@ -2311,8 +2350,6 @@ Retirar na loja"
       setTimeout(() => {
         formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
-
-      alert('✅ Dados analisados com sucesso!\n\n⚙️ Produtos sincronizados com a Shopify\n\nRevise os campos abaixo e confirme os preços.');
     }
 
     // Submit do formulário de criar pedido

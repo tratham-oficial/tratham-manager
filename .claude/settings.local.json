@@ -24,7 +24,12 @@
       "Bash(git push --set-upstream origin main)",
       "Bash(curl -s \"http://localhost:3000/api/ai?action=products\")",
       "Bash(grep -B 5 -A 10 \"if \\(action === ''products''\\)\" /Users/arthursilveira/Downloads/tratham-manager-main/api/ai.js)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "mcp__Control_Chrome__open_url",
+      "mcp__Control_Chrome__get_current_tab",
+      "mcp__Control_Chrome__list_tabs",
+      "mcp__Control_Chrome__switch_to_tab",
+      "mcp__Control_Chrome__execute_javascript"
     ]
   }
 }
