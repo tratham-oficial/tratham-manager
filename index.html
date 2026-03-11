@@ -2427,35 +2427,50 @@ Retirar na loja"
       if (products.length === 0) {
         addCreateOrderItem();
       } else {
-        products.forEach((prod, idx) => {
-          if (idx > 0) addCreateOrderItem();
-          const itemDiv = document.querySelector(`[data-create-item-index="${idx}"]`);
-          if (itemDiv) {
-            const productSelect = itemDiv.querySelector('.create-order-item-product');
-            const variantSelect = itemDiv.querySelector('.create-order-item-variant');
+        // Aguarda um pouco para garantir que os dropdowns foram populados
+        setTimeout(() => {
+          products.forEach((prod, idx) => {
+            if (idx > 0) addCreateOrderItem();
 
-            if (!prod.notFound) {
-              // Se encontrou o produto, seleciona na lista
-              productSelect.value = prod.id;
+            setTimeout(() => {
+              const itemDiv = document.querySelector(`[data-create-item-index="${idx}"]`);
+              if (itemDiv) {
+                const productSelect = itemDiv.querySelector('.create-order-item-product');
+                const variantSelect = itemDiv.querySelector('.create-order-item-variant');
 
-              // Dispara a atualização de variantes
-              updateItemVariants(productSelect, idx);
+                if (!prod.notFound && prod.id) {
+                  // Procura a opção do produto no dropdown
+                  let foundProduct = false;
+                  for (let i = 0; i < productSelect.options.length; i++) {
+                    if (productSelect.options[i].value === prod.id) {
+                      productSelect.selectedIndex = i;
+                      foundProduct = true;
+                      break;
+                    }
+                  }
 
-              // Se tem variante específica, seleciona também
-              if (prod.variantId) {
-                setTimeout(() => {
-                  variantSelect.value = prod.variantId;
-                  updateItemPrice(variantSelect, idx);
-                }, 50);
+                  if (foundProduct) {
+                    // Dispara a atualização de variantes
+                    updateItemVariants(productSelect, idx);
+
+                    // Se tem variante específica, seleciona também
+                    if (prod.variantId) {
+                      setTimeout(() => {
+                        variantSelect.value = prod.variantId;
+                        updateItemPrice(variantSelect, idx);
+                      }, 100);
+                    }
+                  }
+                }
+
+                itemDiv.querySelector('.create-order-item-qty').value = prod.qty;
+                if (prod.price) {
+                  itemDiv.querySelector('.create-order-item-price').value = parseFloat(prod.price).toFixed(2);
+                }
               }
-            }
-
-            itemDiv.querySelector('.create-order-item-qty').value = prod.qty;
-            if (prod.price) {
-              itemDiv.querySelector('.create-order-item-price').value = parseFloat(prod.price).toFixed(2);
-            }
-          }
-        });
+            }, 50 * (idx + 1)); // Delay incremental para cada item
+          });
+        }, 100);
       }
 
       // Rola para o formulário com pequeno delay
