@@ -1848,6 +1848,13 @@ Retirar na loja"
       'camiseta texturizada': ['texturizada', 'camiseta texturizada', 'textirizada'],
     };
 
+    // Formata CPF no formato xxx.xxx.xxx-xx
+    function formatCPF(cpf) {
+      const cleanCPF = cpf.replace(/\D/g, '');
+      if (cleanCPF.length !== 11) return cleanCPF;
+      return cleanCPF.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
     // Busca CEP e completa endereço automaticamente
     async function searchCEP(cep) {
       try {
@@ -1940,11 +1947,41 @@ Retirar na loja"
       }
     }
 
+    // Event listener para formatar CPF
+    function setupCPFListener() {
+      const cpfInput = document.getElementById('createOrderCustomerCpf');
+      if (cpfInput && !cpfInput.hasAttribute('data-cpf-listener-added')) {
+        cpfInput.setAttribute('data-cpf-listener-added', 'true');
+
+        cpfInput.addEventListener('input', (e) => {
+          // Remove tudo que não é número
+          let value = e.target.value.replace(/\D/g, '');
+
+          // Formata como xxx.xxx.xxx-xx
+          if (value.length > 0) {
+            if (value.length <= 3) {
+              e.target.value = value;
+            } else if (value.length <= 6) {
+              e.target.value = value.slice(0, 3) + '.' + value.slice(3);
+            } else if (value.length <= 9) {
+              e.target.value = value.slice(0, 3) + '.' + value.slice(3, 6) + '.' + value.slice(6);
+            } else {
+              e.target.value = value.slice(0, 3) + '.' + value.slice(3, 6) + '.' + value.slice(6, 9) + '-' + value.slice(9, 11);
+            }
+          }
+        });
+      }
+    }
+
     // Executa quando o DOM estiver pronto, ou imediatamente se já está pronto
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', setupCEPListener);
+      document.addEventListener('DOMContentLoaded', () => {
+        setupCEPListener();
+        setupCPFListener();
+      });
     } else {
       setupCEPListener();
+      setupCPFListener();
     }
 
     // Função para encontrar produto por alias
@@ -2341,7 +2378,7 @@ Retirar na loja"
       // Preenche o formulário
       document.getElementById('createOrderCustomerName').value = name;
       document.getElementById('createOrderCustomerEmail').value = email;
-      document.getElementById('createOrderCustomerCpf').value = cpf;
+      document.getElementById('createOrderCustomerCpf').value = formatCPF(cpf);
       document.getElementById('createOrderCustomerPhone').value = phone;
       document.getElementById('createOrderStreet').value = street;
       document.getElementById('createOrderNumber').value = number;
