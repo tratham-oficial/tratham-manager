@@ -1269,6 +1269,17 @@ Retirar na loja"
         const stock = getProductStock(product);
         const image = getProductImage(product);
 
+        // Monta lista de variantes
+        const variants = Array.isArray(product?.variants) ? product.variants : [];
+        const variantsHTML = variants.length > 0
+          ? variants.map(v => `
+              <div style="font-size:12px; padding:4px 0; border-bottom:1px solid #444;">
+                <strong>${safeText(v?.title, 'Variante')}</strong>
+                <span style="float:right;">${safeText(v?.sku, '')} · ${formatMoneyBRL(v?.price)}</span>
+              </div>
+            `).join('')
+          : '<span class="muted">Nenhuma variante</span>';
+
         return `
           <tr>
             <td>
@@ -1282,6 +1293,11 @@ Retirar na loja"
             </td>
             <td>${safeText(product?.vendor, '—')}</td>
             <td>${price}</td>
+            <td>
+              <div style="font-size:12px; max-height:120px; overflow-y:auto;">
+                ${variantsHTML}
+              </div>
+            </td>
             <td>${stock}</td>
             <td>${safeText(product?.status, 'active')}</td>
             <td>
@@ -1299,6 +1315,7 @@ Retirar na loja"
                 <th>Produto</th>
                 <th>Vendor</th>
                 <th>Preço</th>
+                <th>Variantes</th>
                 <th>Estoque</th>
                 <th>Status</th>
                 <th>Ações</th>
