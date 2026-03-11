@@ -2098,12 +2098,17 @@ Frete Grátis ou valor"
     function validateFormVisually() {
       let isValid = true;
       const form = document.getElementById('createOrderForm');
+      console.log('🔍 validateFormVisually() chamada');
 
       // Valida campos obrigatórios usando constantes
       Object.values(VALIDATION.REQUIRED_FIELDS).forEach(fieldId => {
         const field = document.getElementById(fieldId);
-        if (!field) return;
+        if (!field) {
+          console.log(`Campo ${fieldId} não encontrado`);
+          return;
+        }
         const isFieldValid = validateFieldValue(field.value, fieldId);
+        console.log(`Campo ${fieldId}: valor="${field.value}" | válido=${isFieldValid}`);
         setFieldValidationClass(field, isFieldValid);
         if (!isFieldValid) isValid = false;
       });
