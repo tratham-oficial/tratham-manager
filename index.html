@@ -2599,6 +2599,8 @@ Frete Grátis ou valor"
       const formContainer = document.getElementById('createOrderFormContainer');
       setTimeout(() => {
         formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Valida e mostra cores após preencher
+        validateFormVisually();
       }, 100);
     }
 
