@@ -21,7 +21,10 @@
       "Bash(npm install -g vercel)",
       "Bash(git commit:*)",
       "Bash(git push)",
-      "Bash(git push --set-upstream origin main)"
+      "Bash(git push --set-upstream origin main)",
+      "Bash(curl -s \"http://localhost:3000/api/ai?action=products\")",
+      "Bash(grep -B 5 -A 10 \"if \\(action === ''products''\\)\" /Users/arthursilveira/Downloads/tratham-manager-main/api/ai.js)",
+      "Bash(node -e \":*)"
     ]
   }
 }

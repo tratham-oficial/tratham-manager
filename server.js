@@ -117,14 +117,47 @@ const mockData = {
   ],
   products: [
     {
-      id: '1',
-      title: 'Camiseta Básica',
+      id: 'prod_1',
+      title: 'Camiseta Suedine',
+      handle: 'camiseta-suedine',
       vendor: 'Tratham',
-      price: '50.00',
+      price: '89.90',
       status: 'active',
       image: { src: 'https://via.placeholder.com/150' },
       inventory_quantity: 100,
-      variants: []
+      variants: [
+        { id: 'var_1', title: 'M - Habanão', sku: 'CS-M-HAB', price: '89.90', productId: 'prod_1', productTitle: 'Camiseta Suedine' },
+        { id: 'var_2', title: 'G - Azul', sku: 'CS-G-AZU', price: '89.90', productId: 'prod_1', productTitle: 'Camiseta Suedine' },
+        { id: 'var_3', title: 'P - Vermelho', sku: 'CS-P-VER', price: '89.90', productId: 'prod_1', productTitle: 'Camiseta Suedine' }
+      ]
+    },
+    {
+      id: 'prod_2',
+      title: 'Camiseta Texturizada',
+      handle: 'camiseta-texturizada',
+      vendor: 'Tratham',
+      price: '75.90',
+      status: 'active',
+      image: { src: 'https://via.placeholder.com/150' },
+      inventory_quantity: 50,
+      variants: [
+        { id: 'var_4', title: 'M - Habano', sku: 'CT-M-HAB', price: '75.90', productId: 'prod_2', productTitle: 'Camiseta Texturizada' },
+        { id: 'var_5', title: 'G - Cinza', sku: 'CT-G-CIN', price: '75.90', productId: 'prod_2', productTitle: 'Camiseta Texturizada' }
+      ]
+    },
+    {
+      id: 'prod_3',
+      title: 'Suéter Ambition',
+      handle: 'sueter-ambition',
+      vendor: 'Tratham',
+      price: '129.90',
+      status: 'active',
+      image: { src: 'https://via.placeholder.com/150' },
+      inventory_quantity: 30,
+      variants: [
+        { id: 'var_6', title: 'P - Azul', sku: 'SA-P-AZU', price: '129.90', productId: 'prod_3', productTitle: 'Suéter Ambition' },
+        { id: 'var_7', title: 'M - Azul', sku: 'SA-M-AZU', price: '129.90', productId: 'prod_3', productTitle: 'Suéter Ambition' }
+      ]
     }
   ]
 };
@@ -174,6 +207,34 @@ const server = http.createServer((req, res) => {
     }
   } else if (pathname === '/api/ai') {
     if (req.method === 'GET') {
+      const queryParams = new URL(`http://${req.headers.host}${req.url}`).searchParams;
+      const action = queryParams.get('action');
+
+      if (action === 'products') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          ok: true,
+          action: 'products',
+          data: mockData.products
+        }));
+        return;
+      }
+
+      if (action === 'shipping') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          ok: true,
+          action: 'shipping',
+          data: [
+            { id: 'pickup', label: 'Retirar na Loja' },
+            { id: 'delivery', label: 'Enviar (Frete a Calcular)' },
+            { id: 'standard', label: 'Entrega Padrão' },
+            { id: 'express', label: 'Entrega Express' }
+          ]
+        }));
+        return;
+      }
+
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
         ok: true,
