@@ -2377,7 +2377,19 @@ Retirar na loja"
 
       // BUSCA INTELIGENTE: Para cada linha de produto, busca na Shopify
       for (const productLine of productLines) {
-        const matchedProduct = await searchProductSmart(productLine);
+        // Extrai quantidade da linha de produto
+        let qty = 1;
+        let cleanProductLine = productLine;
+
+        // Tenta extrair quantidade (padrões: "- 2 unidades", "2x", "qty 2", "quantidade: 2", etc)
+        const qtyMatch = productLine.match(/(?:[-–x]?\s*(\d+)\s*(?:un|unidade|unit|x|qty|quantidade|pc|pç))|(?:quantidade[:\s]+(\d+))|(?:(\d+)\s*(?:un|unidade)s?$)/i);
+        if (qtyMatch) {
+          qty = parseInt(qtyMatch[1] || qtyMatch[2] || qtyMatch[3]) || 1;
+          // Remove a quantidade do texto para a busca
+          cleanProductLine = productLine.replace(/(?:[-–]\s*\d+\s*(?:un|unidade|unit|x|qty|quantidade|pc|pç)[s]?)|(?:quantidade[:\s]+\d+)|(?:\d+\s*(?:un|unidade)s?\s*$)/i, '').trim();
+        }
+
+        const matchedProduct = await searchProductSmart(cleanProductLine);
         if (matchedProduct) {
           const variant = matchedProduct.variants?.[0];
           products.push({
@@ -2385,15 +2397,15 @@ Retirar na loja"
             variantId: variant?.id,
             name: matchedProduct.title,
             variantName: variant?.title || matchedProduct.title,
-            qty: 1,
+            qty: qty,
             price: variant?.price || 0,
             originalQuery: productLine
           });
         } else {
           // Se não encontrar, adiciona o texto original
           products.push({
-            name: productLine,
-            qty: 1,
+            name: cleanProductLine,
+            qty: qty,
             price: 0,
             notFound: true
           });
