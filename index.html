@@ -2071,7 +2071,16 @@ Frete Grátis ou valor"
 
     function setFieldValidationClass(field, isValid) {
       field.classList.remove(VALIDATION.CLASSES.SUCCESS, VALIDATION.CLASSES.ERROR);
-      field.classList.add(isValid ? VALIDATION.CLASSES.SUCCESS : VALIDATION.CLASSES.ERROR);
+      if (isValid) {
+        field.classList.add(VALIDATION.CLASSES.SUCCESS);
+        field.style.borderColor = '#22c55e';
+        field.style.backgroundColor = 'rgba(34, 197, 94, 0.05)';
+      } else {
+        field.classList.add(VALIDATION.CLASSES.ERROR);
+        field.style.borderColor = '#ef4444';
+        field.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
+      }
+      console.log(`Campo ${field.id}: borderColor=${field.style.borderColor}, class=${field.className}`);
     }
 
     function validateFieldValue(value, fieldId) {
