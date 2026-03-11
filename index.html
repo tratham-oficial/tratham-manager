@@ -2263,8 +2263,16 @@ Retirar na loja"
         }
 
         // Telefone
-        if (lower.includes('+55') || lower.includes('telefone')) {
-          phone = line.replace(/telefone\s*/i, '').trim();
+        if (lower.includes('+55') || lower.includes('telefone') || lower.match(/\(\d{2}\)\s*\d{4,5}-\d{4}/) || lower.match(/\d{10,11}/)) {
+          // Extrai padrões: +55 XX XXXXX-XXXX, (XX) XXXX-XXXX, +55xx9xxxxxxxx
+          const phoneMatch = line.match(/(\+55\s*\(?[\d\s\-\)]+|telefone\s*[:\s]*[\d\s\-\(\)]+|\(?\d{2}\)?\s*\d{4,5}-\d{4}|\d{10,11})/i);
+          if (phoneMatch) {
+            phone = phoneMatch[0]
+              .replace(/telefone\s*[:.\s]*/i, '') // Remove "telefone" e separadores
+              .replace(/^[:.\s\-]+/, '') // Remove dois-pontos/pontos/espaços/dashes no início
+              .replace(/\s+/g, ' ') // Normaliza múltiplos espaços para um
+              .trim();
+          }
         }
 
         // Desconto
@@ -2378,8 +2386,14 @@ Retirar na loja"
       // Preenche o formulário
       document.getElementById('createOrderCustomerName').value = name;
       document.getElementById('createOrderCustomerEmail').value = email;
-      document.getElementById('createOrderCustomerCpf').value = formatCPF(cpf);
-      document.getElementById('createOrderCustomerPhone').value = phone;
+
+      // Preenche e formata CPF
+      const cpfInput = document.getElementById('createOrderCustomerCpf');
+      cpfInput.value = formatCPF(cpf);
+
+      // Limpa phone antes de colocar no campo (remove caracteres especiais iniciais)
+      const cleanPhone = phone.replace(/^[:.\s\-]+/, '').trim();
+      document.getElementById('createOrderCustomerPhone').value = cleanPhone;
       document.getElementById('createOrderStreet').value = street;
       document.getElementById('createOrderNumber').value = number;
       document.getElementById('createOrderComplement').value = complement;
